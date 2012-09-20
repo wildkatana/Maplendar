@@ -65,9 +65,10 @@ function maplendar_schema() {
         'not null' => TRUE,
       ),
       'accuracy' => array(
-        'description' => "The accuracy of the coords",
-        'type' => 'int',
-        'not null' => TRUE,
+        'type' => 'numeric', 
+        'description' => 'The accuracy', 
+        'precision' => '20', 
+        'scale' => '10', 
       ),
       'latitude' => array(
         'type' => 'numeric', 
@@ -78,22 +79,39 @@ function maplendar_schema() {
       'longitude' => array(
         'type' => 'numeric', 
         'description' => 'The latitude', 
-        'precision' => '10', 
-        'scale' => '2', 
+        'precision' => '20', 
+        'scale' => '10', 
       ),
-      'updated' => array(
+      'altitude' => array(
+        'type' => 'numeric', 
+        'description' => 'The altitude', 
+        'precision' => '20', 
+        'scale' => '10', 
+      ),
+      'altitude_accuracy' => array(
+        'type' => 'numeric', 
+        'description' => 'The altitude accuracy', 
+        'precision' => '20', 
+        'scale' => '10', 
+      ),
+      'heading' => array(
+        'type' => 'numeric', 
+        'description' => 'The heading', 
+        'precision' => '20', 
+        'scale' => '10', 
+      ),
+      'speed' => array(
+        'type' => 'numeric', 
+        'description' => 'The speed', 
+        'precision' => '20', 
+        'scale' => '10', 
+      ),
+      'updated_time' => array(
         'description' => "The date the record was updated",
         'type' => 'int',
         'not null' => TRUE,
       ),
-      'code' => array(
-        'description' => 'Set code',
-        'type' => 'varchar',
-        'length' => 64,
-        'not null' => TRUE,
-      ),
     ),
-    'primary key' => array('id'),
   );
 
   return $schema;

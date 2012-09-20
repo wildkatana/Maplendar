@@ -1,2 +1,164 @@
 <?php
 
+//==============================================================================
+// MENU
+//==============================================================================
+
+/**
+ * Implements  hook_menu
+ */
+function maplendar_menu() {
+  $items = array();
+  $items['map/%maplendar_group'] = array(
+    'title' => 'Map',
+    'page callback' => 'maplendar_map_page',
+    'page arguments' => array(1),
+    'access callback' => 'maplendar_map_access',
+    'access arguments' => array(1),
+    'type' => MENU_CALLBACK,
+  );
+  $items['maplendar/%user/log/%'] = array(
+    'page callback' => 'maplendar_log_position',
+    'access callback' => 'maplendar_log_access',
+    'access arguments' => array(1, 3),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Check if the attempt to log position for a user is valid
+ */
+function maplendar_log_access($account, $key) {
+  // Check if the key is set in the user object. Currently the key is just the md5 of the
+  // user created timestamp. Should be more secure in real environment, randomly
+  // generated each time
+  if (md5($account->created) == $key) {
+    return TRUE;
+  }
+  
+  return FALSE;
+}
+
+/**
+ * Check if the user has access to view the map for this group
+ */
+function maplendar_map_access($group) {
+  global $user;
+  
+  return maplendar_group_access_check($group->id, $user->uid);
+}
+
+/**
+ * Checks if a user is in a group
+ */
+function maplendar_group_access_check($gid, $uid) {
+  $result = db_select('maplendar_group_members', 'gm')
+    ->fields('gm')
+    ->condition('gm.uid', $uid, '=')
+    ->condition('gm.gid', $gid, '=')
+    ->execute();
+  
+  foreach ($result as $record) {
+    return TRUE;
+  }
+  
+  return FALSE;
+}
+
+
+//==============================================================================
+// FUNCTIONS
+//==============================================================================
+
+/**
+ * Implements hook_user_load()
+ */
+function maplendar_user_load($users) {
+  // We use this to load the geolocation data into the user object
+  $result = db_query('SELECT * FROM {maplendar_info} WHERE uid IN (:uids)', array(':uids' => array_keys($users)));
+  foreach ($result as $record) {
+    $users[$record->uid]->maplendar_geolocation = $record;
+  }
+}
+
+/**
+ * Loads a group given an id
+ */
+function maplendar_group_load($gid) {
+  $result = db_select('maplendar_groups', 'g')
+    ->fields('g')
+    ->execute();
+  
+  foreach ($result as $group) {
+    return $group;
+  }
+  
+  return FALSE;
+}
+
+/**
+ * Implements hook_theme()
+ */
+function maplendar_theme($existing, $type, $theme, $path) {
+  return array(
+    'maplendar_map_page' => array(
+      'template' => 'maplendar_map_page',
+      'variables' => array(
+      	'group' => NULL,
+	  ),
+    ),
+  );
+}
+
+//==============================================================================
+// PAGES
+//==============================================================================
+
+/**
+ * AJAX callback that records the position of a user from the $_REQUEST array
+ */
+function maplendar_log_position($account) {
+  $position_data = array(
+    'uid' => $account->uid,
+    'latitude' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
+    'longitude' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
+    'accuracy' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
+    'altitude' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
+    'altitude_accuracy' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
+    'heading' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
+    'speed' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
+    'updated_time' => time(),
+  );
+  
+  $success = db_merge('maplendar_info')
+    ->key(array('uid' => $account->uid))
+    ->fields($position_data)
+    ->execute();
+  
+  $result = array(
+    'success' => FALSE,
+  );
+  
+  if ($success) {
+    $result = array(
+      'success' => TRUE,
+    );
+  }
+  else {
+    $result = array(
+      'success' => FALSE,
+      'message' => t("Error writing the record to the database.")
+    );
+  }
+  
+  return drupal_json_output($result);
+}
+
+/**
+ * Callback for the map page
+ */
+function maplendar_map_page($group) {
+  return theme('maplendar_map_page', array('group' => $group));
+}
