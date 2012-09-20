@@ -1,0 +1,8 @@
+; $Id $
+name = Maplendar
+description = Adds the various endpoints, database tables, and logic needed
+core = 7.x
+version = "7.x-1.0"
+package = Maplendar
+files[] = maplendar.install
+files[] = maplendar.module
