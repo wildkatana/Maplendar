@@ -123,12 +123,12 @@ function maplendar_log_position($account) {
   $position_data = array(
     'uid' => $account->uid,
     'latitude' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
-    'longitude' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
-    'accuracy' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
-    'altitude' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
-    'altitude_accuracy' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
-    'heading' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
-    'speed' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
+    'longitude' => !empty($_REQUEST['longitude']) ? $_REQUEST['longitude'] : 0,
+    'accuracy' => !empty($_REQUEST['accuracy']) ? $_REQUEST['accuracy'] : 0,
+    'altitude' => !empty($_REQUEST['altitude']) ? $_REQUEST['altitude'] : 0,
+    'altitude_accuracy' => !empty($_REQUEST['altitude_accuracy']) ? $_REQUEST['altitude_accuracy'] : 0,
+    'heading' => !empty($_REQUEST['heading']) ? $_REQUEST['heading'] : 0,
+    'speed' => !empty($_REQUEST['speed']) ? $_REQUEST['speed'] : 0,
     'updated_time' => time(),
   );
   
@@ -160,5 +160,7 @@ function maplendar_log_position($account) {
  * Callback for the map page
  */
 function maplendar_map_page($group) {
+  //drupal_add_js('http://cdn.leafletjs.com/leaflet-0.4/leaflet.js', 'external');
+  //drupal_add_css('http://cdn.leafletjs.com/leaflet-0.4/leaflet.css');
   return theme('maplendar_map_page', array('group' => $group));
 }
