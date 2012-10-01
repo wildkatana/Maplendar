@@ -1,0 +1,63 @@
+<!DOCTYPE html> 
+<html> 
+	<head> 
+	<title>My Page</title> 
+	
+	
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4/leaflet.css" />
+	<script src="http://cdn.leafletjs.com/leaflet-0.4/leaflet.js"></script>
+
+	<style type="text/css">
+	#map { height: 600px;}
+	</style>
+	
+</head> 
+<body> 
+
+	<div id="map" height: 400px"></div>
+	
+	<script>
+
+		var map = L.map('map').setView([40.4015804 ,  -111.7581321 ], 13);
+		
+		L.tileLayer('http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/997/256/{z}/{x}/{y}.png', {
+			maxZoom: 18,
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery � <a href="http://cloudmade.com">CloudMade</a>'
+		}).addTo(map);
+		var marker = L.marker([40.4015804, -111.7581321]).addTo(map);
+		var marker2 = L.marker([40.4015804, -111.7481321]).addTo(map);
+
+		marker.bindPopup("Ben Andrus<br /><a href='index.html'>Check Calendar</a>");
+		marker2.bindPopup("Other Person <br />I'm another person");
+
+		var popup = L.popup();
+		var calPopup = L.popup();
+		var calPopup2 = L.popup();
+
+	function onMapClick(e) 
+	{
+    	popup
+        .setLatLng(e.latlng)
+        .setContent("You clicked the map at " + e.latlng.toString())
+        .openOn(map);
+	}
+
+	function onMarkerClick(e)
+	{
+		marker.noWrap("false");
+		marker.openPopup();
+	}
+	
+	function onMarkerClick2(e)
+	{
+		marker2.openPopup();
+	}
+
+map.on('click', onMapClick);
+marker.on('click', onMarkerClick);
+marker2.on('click', onMarkerClick2);
+
+	</script>
+	
+</body>
+</html>

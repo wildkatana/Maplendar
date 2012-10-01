@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<title>My Page</title>
+	<meta name="viewport"
+	content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.css"/>
+	<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.js"></script>
+	<script src="jquery.js"></script>
+	
+	<style>
+		#goBack{width:100%;}
+	</style>
+</head>
+<body>
+
+<div data-role="page" id="win1">
+	<div data-role="header">
+		<h1>My Title</h1>
+	</div>
+	
+	<div data-role="content">
+		<h3>
+		<span> Latitude : </span> <span id="lat"></span> <br />
+    	<span> Longitude : </span> <span id="lng"></span> <br />
+		</h3>
+	</div>
+	
+	<div data-role="content">
+		<h1>October 1, 2012</h1>
+		
+		<ul data-role="listview">
+			<li><a href="http://localhost/HCI/fourPM.html"> 4:00 PM</a></li>
+			<li><a href="#fivePM"> 5:00 PM</a></li>
+			<li><a href="#sixPM"> 6:00 PM </a>
+		</ul>
+	</div>
+	
+	<div data-role="footer">
+		<a id="goBack" data-rel="back" data-role="button" data-icon="arrow-l">Back</a>
+	</div>
+	
+</div>
+
+<div data-role="page" id="fivePM">
+	<div data-role="header">
+		<h1>5:00 PM Schedule</h1>
+	</div>
+	
+	<div data-role="content">
+		<h2>October 1, 2012</h2>
+		<h3>5:00 PM</h3>
+		
+		<ul data-role="listview">
+			<li>Empty</li>
+		</ul>
+	</div>
+	
+	<div data-role="footer">
+		<a id="goBack" data-rel="back" data-role="button" data-icon="arrow-l">Back</a>
+	</div>
+</div>
+
+<div data-role="page" id="sixPM">
+	<div data-role="header">
+		<h1>6:00 PM Schedule</h1>
+	</div>
+	
+	<div data-role="content">
+		<h1>October 1, 2012</h1>
+		<h3>6:00 PM</h3>
+		
+		<ul data-role='listview'>
+			<li>6:00 - Go to school.</li>
+			<li>6:15 - Try to pay attention in class.</li>
+			<li>6:45 - Drive home.</li>
+		</ul>
+		
+	</div>
+	
+	<div data-role="footer">
+		<a id="goBack" data-rel="back" data-role="button" data-icon="arrow-l">Back</a>
+	</div>
+</div>
+
+</body>
+</html>
+
+<script>
+	
+	navigator.geolocation.getCurrentPosition (function (pos)
+	{
+	  var lat = pos.coords.latitude;
+	  var lng = pos.coords.longitude;
+	  $("#lat").text (lat);
+	  $("#lng").text (lng);
+	});
+</script>
