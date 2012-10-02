@@ -6,3 +6,5 @@ A school project integrating Google Calendar and Leaflet Maps to help you keep t
 Ben Andrus
 Colin Craghead
 Leighton Whiting
+
+This is Ben's
