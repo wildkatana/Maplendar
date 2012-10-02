@@ -46,7 +46,7 @@ function maplendar_log_access($account, $key) {
  */
 function maplendar_map_access($group) {
   global $user;
-  
+  return TRUE; // REMOVEME
   return maplendar_group_access_check($group->id, $user->uid);
 }
 
