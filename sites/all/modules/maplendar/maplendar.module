@@ -19,6 +19,7 @@ function maplendar_menu() {
   );
   $items['maplendar/%user/log/%'] = array(
     'page callback' => 'maplendar_log_position',
+    'page arguments' => array(1),
     'access callback' => 'maplendar_log_access',
     'access arguments' => array(1, 3),
     'type' => MENU_CALLBACK,
@@ -92,6 +93,19 @@ function maplendar_group_load($gid) {
     ->execute();
   
   foreach ($result as $group) {
+    // Load the members for this group
+    $group->members = array();
+    
+    $result2 = db_select('maplendar_group_members', 'gm')
+      ->fields('gm')
+      ->execute();
+    
+    foreach ($result2 as $row) {
+      if ($member = user_load($row->uid)) {
+        $group->members[$row->uid] = $member;
+      }
+    }
+    
     return $group;
   }
   
@@ -163,4 +177,68 @@ function maplendar_map_page($group) {
   //drupal_add_js('http://cdn.leafletjs.com/leaflet-0.4/leaflet.js', 'external');
   //drupal_add_css('http://cdn.leafletjs.com/leaflet-0.4/leaflet.css');
   return theme('maplendar_map_page', array('group' => $group));
+}
+
+/**
+ * Fetches and parses the google calendar xml
+ */
+function maplendar_get_google_calendar($url) {
+  // First, strip the basic and add full
+  $url = str_replace('basic', '', $url);
+  $events = array();
+
+  $confirmed = 'http://schemas.google.com/g/2005#event.confirmed';
+
+  $start_min = date("Y-m-d\Th:i:sP", time());
+  $start_max = date("Y-m-d\Th:i:sP", strtotime("+1 day"));
+
+  $feed = $url . "full?orderby=starttime&singleevents=true&" .
+    "sortorder=ascending&" .
+    "start-min=" . $start_min . "&" .
+    "start-max=" . $start_max;
+
+  $doc = new DOMDocument(); 
+  $doc->load( $feed );
+
+  $entries = $doc->getElementsByTagName( "entry" ); 
+
+  foreach ( $entries as $entry ) {
+    $status = $entry->getElementsByTagName( "eventStatus" ); 
+    $eventStatus = $status->item(0)->getAttributeNode("value")->value;
+    if ($eventStatus == $confirmed) {
+      $titles = $entry->getElementsByTagName( "title" ); 
+      $title = $titles->item(0)->nodeValue;
+      $title = ereg_replace(" & ", " &amp; ", $title);
+      if ($original = $entry->getElementsByTagName( "originalEvent" ) AND $original_item = $original->item(0)) {
+        $entry->removeChild($original_item);
+      }
+      $times = $entry->getElementsByTagName( "when" ); 
+      $startTime = $times->item(0)->getAttributeNode("startTime")->value;
+      $endTime = $times->item(0)->getAttributeNode("endTime")->value;
+      $places = $entry->getElementsByTagName( "where" ); 
+      $where = $places->item(0)->getAttributeNode("valueString")->value;
+      
+      $events[] = array(
+        'title' => $title,
+        'start' => strtotime($startTime),
+        'end' => strtotime($endTime),
+        'where' => $where
+      );
+    }
+  } 
+
+  /*
+  $raw_xml = simplexml_load_file($url);
+  foreach ($raw_xml->entry as $entry) {
+    drupal_set_message('<pre>' . print_r($entry, TRUE) . '</pre>');
+    $namespaces = $entry->getNameSpaces(true);
+    $gd = $entry->children($namespaces['gd']);
+    
+    //$gd->when->attributes = $gd->when->attributes();
+
+    drupal_set_message('<pre>' . print_r($gd, TRUE) . '</pre>');
+  }
+  */
+  
+  return $events;
 }
