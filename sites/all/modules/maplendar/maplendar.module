@@ -47,7 +47,6 @@ function maplendar_log_access($account, $key) {
  */
 function maplendar_map_access($group) {
   global $user;
-  return TRUE; // REMOVEME
   return maplendar_group_access_check($group->id, $user->uid);
 }
 
@@ -136,13 +135,13 @@ function maplendar_theme($existing, $type, $theme, $path) {
 function maplendar_log_position($account) {
   $position_data = array(
     'uid' => $account->uid,
-    'latitude' => !empty($_REQUEST['latitude']) ? $_REQUEST['latitude'] : 0,
-    'longitude' => !empty($_REQUEST['longitude']) ? $_REQUEST['longitude'] : 0,
-    'accuracy' => !empty($_REQUEST['accuracy']) ? $_REQUEST['accuracy'] : 0,
-    'altitude' => !empty($_REQUEST['altitude']) ? $_REQUEST['altitude'] : 0,
-    'altitude_accuracy' => !empty($_REQUEST['altitude_accuracy']) ? $_REQUEST['altitude_accuracy'] : 0,
-    'heading' => !empty($_REQUEST['heading']) ? $_REQUEST['heading'] : 0,
-    'speed' => !empty($_REQUEST['speed']) ? $_REQUEST['speed'] : 0,
+    'latitude' => !empty($_REQUEST['latitude']) ? floatval($_REQUEST['latitude']) : 0,
+    'longitude' => !empty($_REQUEST['longitude']) ? floatval($_REQUEST['longitude']) : 0,
+    'accuracy' => !empty($_REQUEST['accuracy']) ? floatval($_REQUEST['accuracy']) : 0,
+    'altitude' => !empty($_REQUEST['altitude']) ? floatval($_REQUEST['altitude']) : 0,
+    'altitude_accuracy' => !empty($_REQUEST['altitude_accuracy']) ? floatval($_REQUEST['altitude_accuracy']) : 0,
+    'heading' => !empty($_REQUEST['heading']) ? floatval($_REQUEST['heading']) : 0,
+    'speed' => !empty($_REQUEST['speed']) ? floatval($_REQUEST['speed']) : 0,
     'updated_time' => time(),
   );
   
@@ -190,13 +189,13 @@ function maplendar_get_google_calendar($url) {
   $confirmed = 'http://schemas.google.com/g/2005#event.confirmed';
 
   $start_min = date("Y-m-d\Th:i:sP", time());
-  $start_max = date("Y-m-d\Th:i:sP", strtotime("+1 day"));
+  $start_max = date("Y-m-d\Th:i:sP", strtotime("+2 days"));
 
   $feed = $url . "full?orderby=starttime&singleevents=true&" .
     "sortorder=ascending&" .
     "start-min=" . $start_min . "&" .
     "start-max=" . $start_max;
-
+  //drupal_set_message('<pre>' . print_r($feed, TRUE) . '</pre>');
   $doc = new DOMDocument(); 
   $doc->load( $feed );
 
@@ -218,12 +217,14 @@ function maplendar_get_google_calendar($url) {
       $places = $entry->getElementsByTagName( "where" ); 
       $where = $places->item(0)->getAttributeNode("valueString")->value;
       
-      $events[] = array(
-        'title' => $title,
-        'start' => strtotime($startTime),
-        'end' => strtotime($endTime),
-        'where' => $where
-      );
+      if (strtotime($endTime) > REQUEST_TIME) {
+        $events[] = array(
+          'title' => $title,
+          'start' => strtotime($startTime),
+          'end' => strtotime($endTime),
+          'where' => $where
+        );
+      }
     }
   } 
 

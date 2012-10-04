@@ -48,7 +48,13 @@
 
 <style>
   #map {
+    font-size: 12px;
     height: 500px;
+    color: black;
+    font-style: normal;
+  }
+  #map .ui-body-a, #map .ui-dialog.ui-overlay-a {
+    text-shadow: 0;
   }
   .maplendar_marker_div {
     border: 2px solid #333;
@@ -72,26 +78,62 @@
     margin: 0;
     padding: 0;
   }
-  
+  .leaflet-popup-content {
+    font-weight: normal;
+    font-family: Arial;
+  }
+  .leaflet-popup-content h4 {
+    text-shadow: none;
+    margin: 2px 0;
+    font-size: 14px;
+    text-decoration: underline;
+    font-weight: bold;
+  }
+  .leaflet-popup-content p {
+    margin: 2px 0;
+    font-size: 12px;
+    text-shadow: none;
+  }
+  .leaflet-popup-content p.meta {
+    margin: 0;
+    font-size: 10px;
+    color: #06F;
+  }
   .maplendar_marker_div .maplendar_name {
     margin-top: 2px;
     font-size: 9px;
     line-height: 10px;
     text-align: center;
     width: 50px;
+    text-shadow: none;
   }
 </style>
+
+<button id="geo_update">Update Location</button>
+<div id="map"></div>
 
 <?php
 
 global $user;
+$account = user_load($user->uid);
+if (empty($account->maplendar_geolocation)) {
+  return;
+}
+
+$map_latitude = $account->maplendar_geolocation->latitude;
+$map_longitude = $account->maplendar_geolocation->longitude;
+
+$min_lat = $max_lat = $map_latitude;
+$min_long = $max_long = $map_latitude;
+//date_default_timezone_set($user->timezone);
 
 ?>
-<button id="geo_update">Update</button>
-<div id="map"></div>
 
 <script type="text/javascript">
-  var map = L.map('map').setView([51.505, -0.09], 13);
+(function ($) {
+  $(document).ready(function () {
+    $("#map").css('height', $(window).height() / 2);
+  var map = L.map('map');
 
   L.tileLayer('http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/997/256/{z}/{x}/{y}.png', {
     maxZoom: 18,
@@ -101,47 +143,67 @@ global $user;
   <?php
   // Load the group and members of the group
   foreach ($group->members as $member) {
+    //drupal_set_message('<pre>' . print_r($member, TRUE) . '</pre>');
     if (empty($member->maplendar_geolocation)) {
       // No location data yet, skip it
       continue;
     }
+    $current_event = FALSE;
+    $next_event = FALSE;
+    
     // See if this member as a google calendar
     if (!empty($member->field_google_calendar_private_xm['und'][0]['value'])) {
       $events = maplendar_get_google_calendar($member->field_google_calendar_private_xm['und'][0]['value']);
-      $current_event = FALSE;
-      $next_event = FALSE;
       if (!empty($events)) {
         if ($events[0]['start'] < REQUEST_TIME) {
           $current_event = $events[0];
-          $next_event = $events[0];
+          if (!empty($events[1])) {
+            $next_event = $events[1];
+          }
         }
         else {
           $next_event = $events[0];
         }
       }
-      drupal_set_message('<pre>' . print_r($member, TRUE) . '</pre>');
     }
     
-    $member_html = "
-    <div class='maplendar_image'>
-      <img src='" . drupal_realpath($member->picture->uri) . "' />
-    </div>
-    <div class='maplendar_name'>" . $member->field_full_name['und'][0]['value'] . "</div>";
+    $wrapper = file_stream_wrapper_get_instance_by_uri($member->picture->uri);
+    $picture_url = $wrapper->getDirectoryPath() . "/" . file_uri_target($member->picture->uri);
+  
+    $member_html = "<div class='maplendar_image'><img src='/" . $picture_url . "' /></div><div class='maplendar_name'>" . $member->field_full_name['und'][0]['value'] . "</div>";
     
     $popup_html = "";
     
     if ($current_event) {
-      $popup_html .= "<h4>Now: " . $current_event['title'] . "</h4>";
-      $popup_html .= "<p>Where: " . ($current_event['where'] ? $current_event['where'] : 'N/A') 
-        ." Ends: " . date('H:i:s', $current_event['end']) . "</p>";
+      $popup_html .= "<h4 class='maplendar_bubble_heading'>Now: " . $current_event['title'] . "</h4>";
+      $popup_html .= "<p>Where: " . ($current_event['where'] ? $current_event['where'] : 'N/A') . "</p>" 
+        ."<p>Ends: " . date('m/d/y - g:i a', $current_event['end']) . "</p>";
     }
     
     if ($next_event) {
-      $popup_html .= "<h4>Now: " . $next_event['title'] . "</h4>";
-      $popup_html .= "<p>Where: " . ($next_event['where'] ? $next_event['where'] : 'N/A') 
-        ." Starts: " . date('H:i:s', $next_event['start']) 
-        ." Ends: " . date('H:i:s', $next_event['end']) 
-        . "</p>";
+      $popup_html .= "<h4 class='maplendar_bubble_heading'>Next: " . $next_event['title'] . "</h4>";
+      $popup_html .= "<p>Where: " . ($next_event['where'] ? $next_event['where'] : 'N/A') . "</p>"
+        ."<p>Starts: " . date('m/d/y - g:i a', $next_event['start']) . "</p>"
+        ."<p>Ends: " . date('m/d/y - g:i a', $next_event['end']) . "</p>";
+    }
+    
+    $popup_html .= "<p class='meta'>Last updated: " . date('M j, Y g:i a', $member->maplendar_geolocation->updated_time) . "</p>";
+    $popup_html .= "<p class='meta'>Accuracy: " . round($member->maplendar_geolocation->accuracy) . " meters</p>";
+    
+    $mem_lat = $member->maplendar_geolocation->latitude;
+    $mem_long = $member->maplendar_geolocation->longitude;
+    
+    if ($mem_lat < $min_lat) {
+      $min_lat = $mem_lat;
+    }
+    if ($mem_lat > $max_lat) {
+      $max_lat = $mem_lat;
+    }
+    if ($mem_long < $min_long) {
+      $min_long = $mem_long;
+    }
+    if ($mem_long > $max_long) {
+      $max_long = $mem_long;
     }
     ?>
     var myIcon = L.divIcon({
@@ -151,11 +213,16 @@ global $user;
       html: "<?php print $member_html; ?>"
     });
     
-    L.marker([<?php print $member->longitude; ?>, <?php print $member->latitude; ?>], {icon: myIcon}).addTo(map).bindPopup("<?php print $popup_html; ?>");
+    L.marker([<?php print $mem_lat; ?>, <?php print $mem_long; ?>], {icon: myIcon}).addTo(map).bindPopup("<?php print $popup_html; ?>");
   <?php
   }
   ?>
-
+  map.setView([<?php print $map_latitude; ?>, <?php print $map_longitude; ?>], 13);
   
-
+  //map.fitBounds([
+  //  [<?php print $min_lat; ?>, <?php print $min_long; ?>],
+  //  [<?php print $max_lat; ?>, <?php print $max_long; ?>]
+  //]);
+  });
+})(jQuery);
 </script>
