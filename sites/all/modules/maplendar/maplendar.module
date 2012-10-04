@@ -227,19 +227,6 @@ function maplendar_get_google_calendar($url) {
       }
     }
   } 
-
-  /*
-  $raw_xml = simplexml_load_file($url);
-  foreach ($raw_xml->entry as $entry) {
-    drupal_set_message('<pre>' . print_r($entry, TRUE) . '</pre>');
-    $namespaces = $entry->getNameSpaces(true);
-    $gd = $entry->children($namespaces['gd']);
-    
-    //$gd->when->attributes = $gd->when->attributes();
-
-    drupal_set_message('<pre>' . print_r($gd, TRUE) . '</pre>');
-  }
-  */
   
   return $events;
 }

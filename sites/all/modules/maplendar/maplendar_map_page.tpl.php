@@ -1,7 +1,6 @@
 <script type='text/javascript'>
 (function ($) {
   $(document).ready(function () {
-      // wire up button click
       $('#geo_update').click(function () {
           // test for presence of geolocation
           if (navigator && navigator.geolocation) {
@@ -13,7 +12,6 @@
   });
    
   function geo_success(position) {
-    //printLatLong(position.coords.latitude, position.coords.longitude);
     // Store the current position data for the user
     data = {
       latitude: position.coords.latitude,
@@ -43,8 +41,6 @@
   }
 })(jQuery);
 </script>
-
-
 
 <style>
   #map {
@@ -124,8 +120,7 @@ $map_latitude = $account->maplendar_geolocation->latitude;
 $map_longitude = $account->maplendar_geolocation->longitude;
 
 $min_lat = $max_lat = $map_latitude;
-$min_long = $max_long = $map_latitude;
-//date_default_timezone_set($user->timezone);
+$min_long = $max_long = $map_longitude;
 
 ?>
 
@@ -219,10 +214,10 @@ $min_long = $max_long = $map_latitude;
   ?>
   map.setView([<?php print $map_latitude; ?>, <?php print $map_longitude; ?>], 13);
   
-  //map.fitBounds([
-  //  [<?php print $min_lat; ?>, <?php print $min_long; ?>],
-  //  [<?php print $max_lat; ?>, <?php print $max_long; ?>]
-  //]);
+  map.fitBounds([
+    [<?php print $min_lat; ?>, <?php print $min_long; ?>],
+    [<?php print $max_lat; ?>, <?php print $max_long; ?>]
+  ]);
   });
 })(jQuery);
 </script>
