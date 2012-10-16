@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE dates SYSTEM "event.dtd">
+
+<dates>
+  <date>
+	<time>4:00 PM</time>
+	<event>Running</event>
+  </date>
+  <date>
+  	<time>5:00 PM</time>
+  	<event>Walking</event>
+  </date>
+</dates>

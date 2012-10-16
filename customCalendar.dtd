@@ -1,0 +1,9 @@
+<!DOCTYPE dates
+[
+
+<!ELEMENT dates (date+)>
+<!ELEMENT date (time+, event+)>
+<!ELEMENT time (#PCDATA)>
+<!ELEMENT event (#PCDATA)>
+
+]>
