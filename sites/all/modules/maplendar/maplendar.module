@@ -4,6 +4,8 @@
 // MENU
 //==============================================================================
 
+include 'maplendar.ben.inc';
+
 /**
  * Implements  hook_menu
  */
@@ -24,8 +26,22 @@ function maplendar_menu() {
     'access arguments' => array(1, 3),
     'type' => MENU_CALLBACK,
   );
+  $items['maplendar/%user/calendar'] = array(
+    'page callback' => 'maplendar_calendar_page',
+    'page arguments' => array(1),
+    'access callback' => 'maplendar_calendar_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+  );
 
   return $items;
+}
+
+/**
+ * Access callback for the calendar page
+ */
+function maplendar_calendar_access($account) {
+  return TRUE; // TODO - Check that the user is in the user's group or not
 }
 
 /**
@@ -120,7 +136,13 @@ function maplendar_theme($existing, $type, $theme, $path) {
       'template' => 'maplendar_map_page',
       'variables' => array(
       	'group' => NULL,
-	  ),
+        ),
+    ),
+    'maplendar_calendar_page' => array(
+      'template' => 'maplendar_calendar_page',
+      'variables' => array(
+        'account' => NULL,
+        ),
     ),
   );
 }
