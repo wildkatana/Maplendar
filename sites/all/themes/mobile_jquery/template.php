@@ -57,12 +57,12 @@ function mobile_jquery_preprocess_html(&$vars) {
       'cache' => TRUE, 
       'defer' => FALSE,
     );
-   drupal_add_css('http://code.jquery.com/mobile/1.0.1/jquery.mobile.structure-1.0.1.min.css', array_merge($css_options, array('weight' => 100)));
-   drupal_add_css('http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.css', array_merge($css_options, array('weight' => 100)));
-   drupal_add_js('http://code.jquery.com/jquery-1.6.4.min.js', array_merge($js_options, array('weight' => 100)));
+   drupal_add_css('http://code.jquery.com/mobile/1.2.0/jquery.mobile.structure-1.2.0.min.css', array_merge($css_options, array('weight' => 100)));
+   drupal_add_css('http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css', array_merge($css_options, array('weight' => 100)));
+   drupal_add_js('http://code.jquery.com/jquery-1.8.2.min.js', array_merge($js_options, array('weight' => 100)));
    drupal_add_js(drupal_get_path('theme', 'mobile_jquery') . '/scripts/mobile_jquery.js', array_merge($js_options, array('weight' => 101)));
-   drupal_add_js('http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.js', array_merge($js_options, array('weight' => 101)));
-   } 
+   drupal_add_js('http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js', array_merge($js_options, array('weight' => 101)));
+   }
   $vars['styles'] = drupal_get_css();
 
    if (isset($vars['page']['page_top']['toolbar'])) {
