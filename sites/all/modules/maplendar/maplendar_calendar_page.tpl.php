@@ -10,17 +10,6 @@
 <script src="calendarXMLScript.js"></script>
 -->
 
-<script>
-(function($) {
-	$(document).ready(function()
-	{
-		$("#t").click(function() {
-			$("#t").dialog();
-		});
-	});
-})(jQuery);
-</script>
-
 <style>
 	#goBack{width:100%;}
 	#addHour{height: 30px; width:35px; text-align: right;}
@@ -28,7 +17,6 @@
 	#AMPM{height: 30px; width: 35px; text-transform: uppercase;}
 </style>
 
-<div id="t"><p>test</p></div>
 <ul data-role="listview"></ul>
 <br />
 <h3>Choose Date</h3>
