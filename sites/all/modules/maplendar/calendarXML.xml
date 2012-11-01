@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE dates SYSTEM "event.dtd">
+
+<dates>
+  <date dt="October 15, 2012">
+  	<time>4:45 PM</time>
+  	<event>Sitting down to watch TV</event>
+  </date>
+  <date dt="October 15, 2012">
+	<time>3:00 PM</time>
+	<event>Running</event>
+  </date>
+  <date dt="October 10, 2012">
+  	<time>6:15 PM</time>
+  	<event>Doing something else</event>
+  </date>
+  <date dt="October 31, 2012">
+  	<time>6:30 PM</time>
+  	<event>I'm the last event</event>
+  </date>
+  <date dt="October 10, 2012">
+  	<time>5:20 PM</time>
+  	<event>Fitting in the five.</event>
+  </date>
+  <date dt="October 24, 2012">
+  	<time>4:15 PM</time>
+  	<event>Testing labels</event>
+  </date>
+  <date dt="October 10, 2012">
+  	<time>6:00 PM</time>
+  	<event>Walking</event>
+  </date>
+  <date dt="October 10, 2012">
+  	<time>5:30 PM</time>
+  	<event>Perhaps I'll go running some more now.</event>
+  </date>
+  <date dt="October 24, 2012">
+  	<time>6:00 PM</time>
+  	<event>Testing</event>
+  </date>
+</dates>
