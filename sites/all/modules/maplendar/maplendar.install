@@ -8,6 +8,12 @@
 
 /**
  * Schema specification
+ * 
+ * Leighton Notes:
+ * Here we set up the database tables (schema) that we are going to use. I have
+ * defined a few tables that we use for storing things such as groups, group members,
+ * location information, and events. These database tables get created when the
+ * module is installed in Drupal.
  */
 function maplendar_schema() {
   $schema = array();
@@ -161,49 +167,4 @@ function maplendar_schema() {
   );
 
   return $schema;
-}
-
-/**
- * Create new database table {mytable2}.
- */
-function maplendar_update_7102() {
-  $schema['maplendar_events'] = array(
-    'description' => 'Stores the events for users',
-    'fields' => array(
-      'id' => array(
-        'description' => 'Unique ID',
-        'type' => 'serial',
-        'not null' => TRUE,
-      ),
-      'uid' => array(
-        'description' => 'The user id',
-        'type' => 'int',
-        'not null' => TRUE,
-      ),
-      'title' => array(
-        'description' => 'Event title',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-      ),
-      'place' => array(
-        'description' => 'Place',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-      ),
-      'start_time' => array(
-        'description' => 'Timestamp for this event',
-        'type' => 'int',
-        'not null' => FALSE,
-      ),
-      'end_time' => array(
-        'description' => 'Timestamp for this event',
-        'type' => 'int',
-        'not null' => FALSE,
-      ),
-    ),
-    'primary key' => array('id'),
-  );
-  db_create_table('maplendar_events', $schema['maplendar_events']);
 }
