@@ -22,4 +22,4 @@
 <h3>Choose Date</h3>
 <input id="chosenDate" type="date" data-role="datebox" data-options='{"mode": "calbox", "useTodayButton": true "dateformat":"MM/DD/YYYY"}'>
 <button id="grabSchedule">Grab Schedule</button>
-<a href="#addEvent" data-role="button" data-rel="dialog" data-transition="pop">Add Event</a>
+<a href="/maplendar/<?php print $account->uid; ?>/calendar/add" data-role="button">Add Event</a>

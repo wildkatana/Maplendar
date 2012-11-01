@@ -146,19 +146,17 @@ $min_long = $max_long = $map_longitude;
     $current_event = FALSE;
     $next_event = FALSE;
     
-    // See if this member as a google calendar
-    if (!empty($member->field_google_calendar_private_xm['und'][0]['value'])) {
-      $events = maplendar_get_google_calendar($member->field_google_calendar_private_xm['und'][0]['value']);
-      if (!empty($events)) {
-        if ($events[0]['start'] < REQUEST_TIME) {
-          $current_event = $events[0];
-          if (!empty($events[1])) {
-            $next_event = $events[1];
-          }
-        }
-        else {
-          $next_event = $events[0];
-        }
+    // Get current and next events
+    foreach ($member->events as $event) {
+      if ($event['start'] < REQUEST_TIME AND $event['end'] > REQUEST_TIME) {
+        $current_event = $event;
+        break;
+      }
+    }
+    foreach ($member->events as $event) {
+      if ($event['start'] > REQUEST_TIME) {
+        $next_event = $event;
+        break;
       }
     }
     

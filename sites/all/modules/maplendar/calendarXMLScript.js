@@ -87,7 +87,7 @@
     		currentDateTime = new Date(correctDateFormat);
     	}
     	
-    	  d = Drupal.settings.maplendar.xml_contents;
+    	  user_events = Drupal.settings.maplendar.events;
     		timesEventArray = new Array();
     		hourlyEventArray = new Array();
     		labelArray = new Array();
@@ -97,35 +97,32 @@
       		$('h2').replaceWith('');
       		
     	  	$('body').append('<div>');
-    
-    	  	$(d).find("date").each(function(index, element) 
-    	  	{
-    	  		var element =$(element);
-    			var $dateNode = $(this);
-    			var date = element.attr("dt");
-    			var time = $dateNode.find("time").text();
-    			var evnt = $dateNode.find("event").text();
-    			
-    			var currentTime = currentDateTime.getTime();
-    
-    			var nodeDateTime = new Date(date + " " +  time);
-    			var nodeTime = nodeDateTime.getTime();
-    			
-    			var nodeDate = nodeDateTime.getMonth() + nodeDateTime.getDate() + nodeDateTime.getYear();
-    			var currentDate = currentDateTime.getMonth() + currentDateTime.getDate() + currentDateTime.getYear();
-    			
-    			//This is for the map bubbles
-    			//if(nodeDateTime.getHours() <= currentDateTime.getHours() && nodeDate == currentDate)
-    			if(nodeDate == currentDate)
-    			{
-    				dateString = date;
-    				hour = nodeDateTime.getHours();
-    				
-    				getHourString(hour);
-    				labelArray.push('<li data-role="list-divider"><h2>' + timeString + '</h2></li>')
-    				timesEventArray.push('<li>' + time + ' - ' + evnt + '</li>');
-    			}
-    	  	});
+    	  	
+    	  	for (var j in user_events) {
+            var date = user_events[j].date_string;
+            var time = user_events[j].time_string;
+            var evnt = user_events[j].title;
+            
+            var currentTime = currentDateTime.getTime();
+      
+            var nodeDateTime = new Date(date + " " +  time);
+            var nodeTime = nodeDateTime.getTime();
+            
+            var nodeDate = nodeDateTime.getMonth() + nodeDateTime.getDate() + nodeDateTime.getYear();
+            var currentDate = currentDateTime.getMonth() + currentDateTime.getDate() + currentDateTime.getYear();
+            
+            //This is for the map bubbles
+            //if(nodeDateTime.getHours() <= currentDateTime.getHours() && nodeDate == currentDate)
+            if(nodeDate == currentDate)
+            {
+              dateString = date;
+              hour = nodeDateTime.getHours();
+              
+              getHourString(hour);
+              labelArray.push('<li data-role="list-divider"><h2>' + timeString + '</h2></li>')
+              timesEventArray.push('<li>' + time + ' - ' + evnt + '</li>');
+            }
+    	  	}
     				
     	  	timesEventArray.sort();
     	  	labelArray.sort();
