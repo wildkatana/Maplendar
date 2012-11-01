@@ -33,6 +33,13 @@ function maplendar_menu() {
     'access arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
   );
+  $items['maplendar/%user/calendar/add'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('maplendar_add_event_form', 1),
+    'access callback' => 'maplendar_calendar_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+  );
 
   return $items;
 }
@@ -96,7 +103,41 @@ function maplendar_user_load($users) {
   $result = db_query('SELECT * FROM {maplendar_info} WHERE uid IN (:uids)', array(':uids' => array_keys($users)));
   foreach ($result as $record) {
     $users[$record->uid]->maplendar_geolocation = $record;
+    $events = maplendar_get_user_events($record->uid);
+    
+    // See if this member has a google calendar
+    if (!empty($users[$record->uid]->field_google_calendar_private_xm['und'][0]['value'])) {
+      $google_events = maplendar_get_google_calendar($users[$record->uid]->field_google_calendar_private_xm['und'][0]['value']);
+      $events += $google_events;
+    }
+    ksort($events);
+    $users[$record->uid]->events = $events;
   }
+}
+
+/**
+ * Gets an array of events from the database
+ */
+function maplendar_get_user_events($uid) {
+  $result = db_select('maplendar_events', 'e')
+    ->fields('e')
+    ->condition('uid', $uid)
+    ->execute();
+  
+  $events = array();
+  
+  foreach ($result as $row) {
+    $events[$row->start_time] = array(
+      'title' => $row->title,
+      'date_string' => date('M d, Y', $row->start_time),
+      'time_string' => date('g:i A', $row->start_time),
+      'start' => $row->start_time,
+      'where' => $row->place,
+      'end' => $row->end_time,
+    );
+  }
+  
+  return $events;
 }
 
 /**
@@ -234,19 +275,19 @@ function maplendar_get_google_calendar($url) {
         $entry->removeChild($original_item);
       }
       $times = $entry->getElementsByTagName( "when" ); 
-      $startTime = $times->item(0)->getAttributeNode("startTime")->value;
-      $endTime = $times->item(0)->getAttributeNode("endTime")->value;
+      $startTime = strtotime($times->item(0)->getAttributeNode("startTime")->value);
+      $endTime = strtotime($times->item(0)->getAttributeNode("endTime")->value);
       $places = $entry->getElementsByTagName( "where" ); 
       $where = $places->item(0)->getAttributeNode("valueString")->value;
       
-      if (strtotime($endTime) > REQUEST_TIME) {
-        $events[] = array(
-          'title' => $title,
-          'start' => strtotime($startTime),
-          'end' => strtotime($endTime),
-          'where' => $where
-        );
-      }
+      $events[$startTime] = array(
+        'title' => $title,
+        'date_string' => date('M d, Y', $startTime),
+        'time_string' => date('g:i A', $startTime),
+        'start' => $startTime,
+        'end' => $endTime,
+        'where' => $where
+      );
     }
   } 
   
