@@ -252,7 +252,7 @@ function maplendar_get_google_calendar($url) {
   $confirmed = 'http://schemas.google.com/g/2005#event.confirmed';
 
   $start_min = date("Y-m-d\Th:i:sP", time());
-  $start_max = date("Y-m-d\Th:i:sP", strtotime("+2 days"));
+  $start_max = date("Y-m-d\Th:i:sP", strtotime("+1 month"));
 
   $feed = $url . "full?orderby=starttime&singleevents=true&" .
     "sortorder=ascending&" .
