@@ -7,7 +7,16 @@
 include 'maplendar.ben.inc';
 
 /**
- * Implements  hook_menu
+ * Implements hook_menu
+ * 
+ * Leighton Notes:
+ * This is a special Drupal hook that lets us register paths and callback functions.
+ * Paths are like URLs on the site that we want to create, and the callback functions
+ * are what generate the content for that url.
+ * There are various variables that can be included in the paths, such as %maplendar_group,
+ * %user, and just general % variables. These can be passed into the callback functions
+ * so that we can create different maps for different groups, and different calendars
+ * for different users, etc.
  */
 function maplendar_menu() {
   $items = array();
@@ -46,6 +55,12 @@ function maplendar_menu() {
 
 /**
  * Access callback for the calendar page
+ * 
+ * Leighton Notes:
+ * This is a function that will be called when the user tries to access a calendar page.
+ * We should check that the user has the proper access to see the page (ie they are
+ * in the same group as the $account). For now we are just returning TRUE to always
+ * grant access, but this will need to be changed before production.
  */
 function maplendar_calendar_access($account) {
   return TRUE; // TODO - Check that the user is in the user's group or not
@@ -53,6 +68,11 @@ function maplendar_calendar_access($account) {
 
 /**
  * Check if the attempt to log position for a user is valid
+ * 
+ * Leighton Notes:
+ * This is the access callback to check if the log is a proper log from the system.
+ * We determine this by checking the key, which is the md5 checksum of a user's
+ * creation date. This is to prevent people from spoofing data and other hacking attempts.
  */
 function maplendar_log_access($account, $key) {
   // Check if the key is set in the user object. Currently the key is just the md5 of the
@@ -67,6 +87,11 @@ function maplendar_log_access($account, $key) {
 
 /**
  * Check if the user has access to view the map for this group
+ * 
+ * Leighton Notes:
+ * This is the access callback to make sure that the user has access to view the
+ * group's map page (ie they should be a member of the group). This is to prevent
+ * random people from seeing your maps.
  */
 function maplendar_map_access($group) {
   global $user;
@@ -75,6 +100,10 @@ function maplendar_map_access($group) {
 
 /**
  * Checks if a user is in a group
+ * 
+ * Leighton Notes:
+ * We just load the group members for a group and make sure that the user id passed
+ * is in that group. If it is, we return TRUE, if not, we return FALSE.
  */
 function maplendar_group_access_check($gid, $uid) {
   $result = db_select('maplendar_group_members', 'gm')
@@ -97,26 +126,53 @@ function maplendar_group_access_check($gid, $uid) {
 
 /**
  * Implements hook_user_load()
+ * 
+ * Leighton Notes:
+ * Drupal calls this function when it loads a user from the database (which happens a lot)
+ * What we do here is add the events for the user, both from our database table and from
+ * Google Calendar if they have it set, to the $user object
+ * 
+ * We also add the saved geolocation data to the user object here too
  */
 function maplendar_user_load($users) {
   // We use this to load the geolocation data into the user object
   $result = db_query('SELECT * FROM {maplendar_info} WHERE uid IN (:uids)', array(':uids' => array_keys($users)));
   foreach ($result as $record) {
+    // Add the geolocation data to the user object from our database table
     $users[$record->uid]->maplendar_geolocation = $record;
+    
+    // Get the events for the user from our database table
     $events = maplendar_get_user_events($record->uid);
     
-    // See if this member has a google calendar
+    // See if this member has a google calendar, and if so, get those events
     if (!empty($users[$record->uid]->field_google_calendar_private_xm['und'][0]['value'])) {
       $google_events = maplendar_get_google_calendar($users[$record->uid]->field_google_calendar_private_xm['und'][0]['value']);
       $events += $google_events;
     }
+    // Sort the events by the timestamp so they are in order
     ksort($events);
+    // Add them to the user object
     $users[$record->uid]->events = $events;
   }
 }
 
 /**
+ * Implements hook_user_insert
+ * 
+ * Leighton Notes:
+ * Drupal calls this function whenever a new user is saved
+ */
+function maplendar_user_insert(&$edit, $account, $category) {
+  // Not used right now
+}
+
+/**
  * Gets an array of events from the database
+ * 
+ * Leighton Notes:
+ * This does an SQL select statement to get the events for the user id that is passed
+ * in from our database table 'maplendar_events' and returns them in an array keyed
+ * by the start_time timestamp
  */
 function maplendar_get_user_events($uid) {
   $result = db_select('maplendar_events', 'e')
@@ -142,6 +198,11 @@ function maplendar_get_user_events($uid) {
 
 /**
  * Loads a group given an id
+ * 
+ * Leighton Notes:
+ * This loads a group from the database table 'maplendar_groups' by it's group id,
+ * then fills it's members property with an array of members belonging to the group,
+ * as saved in the 'maplendar_group_members' database table
  */
 function maplendar_group_load($gid) {
   $result = db_select('maplendar_groups', 'g')
@@ -170,6 +231,14 @@ function maplendar_group_load($gid) {
 
 /**
  * Implements hook_theme()
+ * 
+ * Leighton Notes:
+ * This function tells drupal which custom 'theme' functions we have, and where the
+ * template files (.tpl.php) are that should be called to build the output for each
+ * theme call, as well as any variables that will be passed in to those theme files
+ * 
+ * Note that these two theme functions we are registering relate to the two .tpl.php files
+ * we use for the map and calendar pages
  */
 function maplendar_theme($existing, $type, $theme, $path) {
   return array(
@@ -194,6 +263,11 @@ function maplendar_theme($existing, $type, $theme, $path) {
 
 /**
  * AJAX callback that records the position of a user from the $_REQUEST array
+ * 
+ * Leighton Notes:
+ * This is called by the jQuery code on the map page (in the maplendar_map_page.tpl.php file)
+ * when the 'Update Location' button is clicked. It reads in the properties that were passed
+ * in the $_REQUEST variable and saves them to the database table 'maplendar_info'
  */
 function maplendar_log_position($account) {
   $position_data = array(
@@ -234,15 +308,23 @@ function maplendar_log_position($account) {
 
 /**
  * Callback for the map page
+ * 
+ * Leighton Notes:
+ * This is the callback function for the map page path we defined in maplendar_menu() above.
+ * We just call the theme function we registered and pass the group as the variable to the
+ * template file.
  */
 function maplendar_map_page($group) {
-  //drupal_add_js('http://cdn.leafletjs.com/leaflet-0.4/leaflet.js', 'external');
-  //drupal_add_css('http://cdn.leafletjs.com/leaflet-0.4/leaflet.css');
   return theme('maplendar_map_page', array('group' => $group));
 }
 
 /**
  * Fetches and parses the google calendar xml
+ * 
+ * Leighton Notes:
+ * Here we fetch the xml file from the $url that was passed in and parse the xml
+ * to extract the events, and return those events in an array keyed by the start
+ * timestamp
  */
 function maplendar_get_google_calendar($url) {
   // First, strip the basic and add full

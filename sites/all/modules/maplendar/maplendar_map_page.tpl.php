@@ -2,8 +2,9 @@
 (function ($) {
   $(document).ready(function () {
       $('#geo_update').click(function () {
-          // test for presence of geolocation
+          // Test for presence of geolocation
           if (navigator && navigator.geolocation) {
+              // Attempt to get the geolocation data from HTML 5
               navigator.geolocation.getCurrentPosition(geo_success, geo_error);
           } else {
               alert('Geolocation is not supported.');
@@ -11,6 +12,12 @@
       });
   });
    
+  /**
+   * Leighton Notes:
+   * If we succesffully got the geolocation data from HTML 5, we put that data into
+   * an object and send that object to our log location callback maplendar_log_position()
+   * via AJAX, which will save the location data in the database. 
+   */
   function geo_success(position) {
     // Store the current position data for the user
     data = {
