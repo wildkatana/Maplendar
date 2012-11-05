@@ -6,7 +6,7 @@ $jqm(document).bind("mobileinit", function() {
   $jqm.mobile.subPageUrlKey = 'ui-page';
   $jqm.mobile.activePageClass = 'ui-page-active';
   $jqm.mobile.activeBtnClass = 'ui-btn-active'; 
-  $jqm.mobile.ajaxEnabled = 1;
+  $jqm.mobile.ajaxEnabled = 0;
   $jqm.mobile.hashListeningEnabled = 1;
   $jqm.mobile.defaultPageTransition = 'slide';
   $jqm.mobile.defaultDialogTransition = 'pop';

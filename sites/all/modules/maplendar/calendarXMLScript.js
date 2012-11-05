@@ -119,9 +119,11 @@
       hourlyEventArray = new Array();
       labelArray = new Array();
 
-      $('div[data-role="header"]').empty();
-      $('ul[data-role="listview"]').empty();
-      $('h2').replaceWith('');
+      //$('div[data-role="header"]').empty();
+      //$('ul[data-role="listview"]').empty();
+      //$('h2').replaceWith('');
+      
+      $('ul#calendar_list').empty();
 
       $('body').append('<div>');
 
@@ -158,10 +160,10 @@
       for (var i = 0; i < timesEventArray.length; i++) {
         if (labelArray[i] != labelString) {
           labelString = labelArray[i];
-          $('ul[data-role="listview"]').append(labelArray[i]);
+          $('ul#calendar_list').append(labelArray[i]);
         }
 
-        $('ul[data-role="listview"]').append(timesEventArray[i]);
+        $('ul#calendar_list').append(timesEventArray[i]);
       };
 
       timesEventArray = null;
@@ -169,7 +171,7 @@
       labelArray = null;
 
       //Update list and end div
-      $('ul[data-role="listview"]').listview("refresh");
+      $('ul#calendar_list').listview("refresh");
       $('body').append('</div>')
 
       //Display current hour

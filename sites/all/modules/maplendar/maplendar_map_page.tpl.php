@@ -30,8 +30,7 @@
       speed: position.coords.speed,
     };
     $.post("/maplendar/<?php print $user->uid; ?>/log/<?php print md5($user->created); ?>", data, function(data, textStatus, jqXHR) {
-      alert('Updated');
-      window.location.href = "/map/<?php print $group->id; ?>";
+      window.location.href = "/group/<?php print $group->id; ?>";
     });
   }
   
