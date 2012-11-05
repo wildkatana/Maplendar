@@ -171,7 +171,7 @@ $min_long = $max_long = $map_longitude;
   
     $member_html = "<div class='maplendar_image'><img src='/" . $picture_url . "' /></div><div class='maplendar_name'>" . $member->field_full_name['und'][0]['value'] . "</div>";
     
-    $popup_html = "";
+    $popup_html = "<a href='" . "/user/" . $member->uid . "/calendar" . "'>" . t('View Calendar') . "</a>";
     
     if ($current_event) {
       $popup_html .= "<h4 class='maplendar_bubble_heading'>Now: " . $current_event['title'] . "</h4>";

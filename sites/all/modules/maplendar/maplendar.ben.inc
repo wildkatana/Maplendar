@@ -7,6 +7,7 @@
  * This is the calendar page callback we defined in maplendar_menu() function.
  */
 function maplendar_calendar_page($account) {
+  drupal_set_title(t("Calendar for @user", array('@user' => $account->field_full_name[LANGUAGE_NONE][0]['value'])));
   // Add the dialog jquery UI library (instead of the whole jquery UI libraries for performance)
   drupal_add_library('system', 'ui.dialog');
   // Add a javascript setting that will be in the Drupal.settings.maplendar.events variable
