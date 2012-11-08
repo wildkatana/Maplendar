@@ -20,13 +20,31 @@ include 'maplendar.ben.inc';
  */
 function maplendar_menu() {
   $items = array();
-  $items['map/%maplendar_group'] = array(
+  $items['group/%maplendar_group'] = array(
     'title' => 'Map',
     'page callback' => 'maplendar_map_page',
     'page arguments' => array(1),
     'access callback' => 'maplendar_map_access',
     'access arguments' => array(1),
-    'type' => MENU_CALLBACK,
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['group/%maplendar_group/map'] = array(
+    'title' => 'Map',
+    'page callback' => 'maplendar_map_page',
+    'page arguments' => array(1),
+    'access callback' => 'maplendar_map_access',
+    'access arguments' => array(1),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 1,
+  );
+  $items['group/%maplendar_group/invite'] = array(
+    'title' => 'Invite',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('maplendar_invite_form', 1),
+    'access callback' => 'maplendar_map_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
   );
   $items['maplendar/%user/log/%'] = array(
     'page callback' => 'maplendar_log_position',
@@ -35,22 +53,45 @@ function maplendar_menu() {
     'access arguments' => array(1, 3),
     'type' => MENU_CALLBACK,
   );
-  $items['maplendar/%user/calendar'] = array(
+  $items['user/%user/calendar'] = array(
+    'title' => 'Calendar',
     'page callback' => 'maplendar_calendar_page',
     'page arguments' => array(1),
     'access callback' => 'maplendar_calendar_access',
     'access arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
   );
-  $items['maplendar/%user/calendar/add'] = array(
+  $items['user/%user/calendar/add'] = array(
     'page callback' => 'drupal_get_form',
     'page arguments' => array('maplendar_add_event_form', 1),
     'access callback' => 'maplendar_calendar_access',
     'access arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
   );
-
+  $items['invitation/accept/%/%maplendar_invitation'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('maplendar_accept_invite_form', 2, 3),
+    'access callback' => 'maplendar_accept_invite_access',
+    'access arguments' => array(2, 3),
+    'type' => MENU_LOCAL_TASK,
+  );
   return $items;
+}
+
+/**
+ * Access callback for the accept invite page
+ * 
+ * Leighton Notes:
+ * We want to make sure that only registered users can accept invites.
+ */
+function maplendar_accept_invite_access() {
+  global $user;
+  if ($user->uid) {
+    return TRUE;
+  }
+  else {
+    drupal_goto('user/register', array('query' => drupal_get_destination()));
+  }
 }
 
 /**
@@ -197,6 +238,22 @@ function maplendar_get_user_events($uid) {
 }
 
 /**
+ * Load an invitation record from the database
+ */
+function maplendar_invitation_load($id) {
+  $result = db_select('maplendar_invites', 'i')
+    ->fields('i')
+    ->condition('id', $id)
+    ->execute();
+  
+  foreach ($result as $invitation) {
+    return $invitation;
+  }
+  
+  return FALSE;
+}
+
+/**
  * Loads a group given an id
  * 
  * Leighton Notes:
@@ -206,6 +263,7 @@ function maplendar_get_user_events($uid) {
  */
 function maplendar_group_load($gid) {
   $result = db_select('maplendar_groups', 'g')
+    ->condition('id', $gid)
     ->fields('g')
     ->execute();
   
@@ -255,6 +313,33 @@ function maplendar_theme($existing, $type, $theme, $path) {
         ),
     ),
   );
+}
+
+/**
+ * Implements hook_mail().
+ * 
+ * Handle Mail functions
+ */
+function maplendar_mail($key, &$message, $vars) {
+  // Load the vars
+  extract($vars);
+  
+  switch ($key) {
+    case 'invitation':
+      $message['subject'] = variable_get('maplendar_invitation_mail_subject', t("You've been invited!"));
+      $message['body'][] = variable_get('maplendar_invitation_mail_body', t("
+You've been invited by @user_name to join his/her group: @group_name
+
+To accept this invitation, click this link: !link
+
+Sincerely,
+Maplendar Team
+      ", array(
+        '@user_name' => $account->field_full_name[LANGUAGE_NONE][0]['value'], 
+        '@group_name' => $group->name,
+        '!link' => url('invitation/accept/' . md5($invitation->created) . '/' . $invitation->id, array('absolute' => TRUE)))));
+    break;
+  }
 }
 
 //==============================================================================
@@ -319,6 +404,142 @@ function maplendar_map_page($group) {
 }
 
 /**
+ * Form builder for the invite group page
+ */
+function maplendar_invite_form($form, $form_state, $group) {
+  drupal_set_title(t("Invite"));
+  $form = array();
+  $form['group'] = array(
+    '#type' => 'value',
+    '#value' => $group,
+  );
+  $form['email'] = array(
+    '#title' => t("Invite via Email"),
+    '#description' => t("Enter the email of the person you would like to invite 
+      to join your group. They will be sent an email with an invitation link."),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+  );
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t("Invite"),
+  );
+  
+  return $form;
+}
+
+/**
+ * Validation callback for the invite friend form
+ * 
+ * Leighton Notes:
+ * Here we check that the user isn't already a member of the group, as well as if the
+ * email address is properly formatted
+ */
+function maplendar_invite_form_validate($form, $form_state) {
+  if (!valid_email_address($form_state['values']['email'])) {
+    form_set_error('email', t("Please enter a valid email address."));
+  }
+  $group = $form_state['values']['group'];
+  if ($account = user_load_by_mail($form_state['values']['email']) AND in_array($account->uid, $group->members)) {
+    form_set_error('email', t("That user is already a member of this group."));
+  }
+}
+
+/**
+ * Submit handler for the invite friend form
+ * 
+ * Leighton Notes:
+ * Here we will get the email address entered and send that email an invite from
+ * the currently logged in user, with a link where they can accept the invitation
+ * to join the group.
+ * We also store the invitation in a database table so that we can check that the
+ * user is actually invited before letting them join later, for security.
+ */
+function maplendar_invite_form_submit($form, $form_state) {
+  global $user;
+  $group = $form_state['values']['group'];
+  $email = $form_state['values']['email'];
+  $account = user_load($user->uid);
+  
+  // Erase an existing record if needed
+  $result = db_delete('maplendar_invites')
+    ->condition('gid', $group->id)
+    ->condition('email', $email)
+    ->execute();
+  
+  // Save the invitation to the database
+  $record = new stdClass();
+  $record->gid = $group->id;
+  $record->uid = $account->uid;
+  $record->email = $email;
+  $record->created = time();
+  $record->accepted = 0;
+  drupal_write_record('maplendar_invites', $record);
+  
+  // Send the email
+  drupal_mail('maplendar', 'invitation', $email, user_preferred_language($account), array('account' => $account, 'group' => $group, 'invitation' => $record));
+  
+  drupal_set_message(t("Sent an invitation email to @email", array('@email' => $email)));
+}
+
+/**
+ * Form builder for the invite group page
+ */
+function maplendar_accept_invite_form($form, $form_state, $md5, $invitation) {
+  // Load the group
+  $group = maplendar_group_load($invitation->gid);
+  $account = user_load($invitation->uid);
+  
+  $form = array();
+  $form['invitation'] = array(
+    '#type' => 'value',
+    '#value' => $invitation,
+  );
+  
+  drupal_set_title(t("Accept Invitation"));
+  
+  $form['help'] = array(
+    '#type' => 'item',
+    '#markup' => t("Click below to accept the invitation from @user_name to join @group group.", 
+      array('@group' => $group->name, '@user_name' => $account->field_full_name[LANGUAGE_NONE][0]['value']))
+  );
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t("Accept Invite"),
+  );
+  
+  return $form;
+}
+
+/**
+ * Submit handler for the invite friend form
+ * 
+ * Leighton Notes:
+ * When the user accepts the invite, we simply create a new group member record
+ * for them
+ */
+function maplendar_accept_invite_form_submit($form, $form_state) {
+  global $user;
+  $invitation = $form_state['values']['invitation'];
+  
+  // Erase an existing record if needed
+  $result = db_delete('maplendar_invites')
+    ->condition('id', $invitation->id)
+    ->execute();
+  
+  // Save the record to the database
+  $record = new stdClass();
+  $record->gid = $invitation->gid;
+  $record->uid = $user->uid;
+  drupal_write_record('maplendar_group_members', $record);
+  
+  drupal_set_message(t("You have joined the group."));
+  drupal_goto('group/' . $invitation->gid);
+}
+
+/**
  * Fetches and parses the google calendar xml
  * 
  * Leighton Notes:
@@ -374,4 +595,71 @@ function maplendar_get_google_calendar($url) {
   } 
   
   return $events;
+}
+
+// ======================================
+// Entity Hooks
+// ======================================
+
+/**
+ * Implements hook_entity_info().
+ */
+function maplendar_entity_info() {
+  return array(
+    'maplendar_group' => array(
+      'label' => t('Maplendar Group'),
+      'base table' => 'maplendar_groups',
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIController',
+      'entity keys' => array(
+        'id' => 'id',
+      ),
+      'label callback' => 'maplendar_group_label',
+      'uri callback' => 'maplendar_group_uri',
+      'fieldable' => FALSE,
+      'module' => 'maplendar',
+    ),
+    'maplendar_group_member' => array(
+      'label' => t('Maplendar Group Member'),
+      'base table' => 'maplendar_group_members',
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIController',
+      'entity keys' => array(
+        'id' => 'id',
+      ),
+      'fieldable' => FALSE,
+      'module' => 'maplendar',
+    ),
+  );
+}
+
+/**
+ * Implements hook_entity_property_info_alter().
+ */
+function maplendar_entity_property_info_alter(&$info) {
+  $maplendar_group = &$info['maplendar_group']['properties'];
+  $maplendar_group['name']['label'] = t('Name');
+  $maplendar_group['uid']['type'] = 'user';
+  $maplendar_group['created']['type'] = 'date';
+
+  $maplendar_group_member = &$info['maplendar_group_member']['properties'];
+  $maplendar_group_member['gid']['type'] = 'maplendar_group';
+  $maplendar_group_member['uid']['type'] = 'user';
+}
+
+/**
+ * Creates the label for a group
+ */
+function maplendar_group_label($entity, $entity_type) {
+  return t('Group: @name', array('@name' => $entity->name));
+}
+
+/**
+ * Creates the uri for a Group
+ */
+function maplendar_group_uri($entity) {
+  return array(
+    'path' => 'group/' . $entity->id,
+    'options' => array(),
+  );
 }

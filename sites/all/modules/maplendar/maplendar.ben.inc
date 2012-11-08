@@ -7,6 +7,7 @@
  * This is the calendar page callback we defined in maplendar_menu() function.
  */
 function maplendar_calendar_page($account) {
+  drupal_set_title(t("Calendar for @user", array('@user' => $account->field_full_name[LANGUAGE_NONE][0]['value'])));
   // Add the dialog jquery UI library (instead of the whole jquery UI libraries for performance)
   drupal_add_library('system', 'ui.dialog');
   // Add a javascript setting that will be in the Drupal.settings.maplendar.events variable
@@ -32,6 +33,8 @@ function maplendar_calendar_page($account) {
  * the specifications in this array.
  */
 function maplendar_add_event_form($form, &$form_state, $account) {
+  $form = array();
+  
   $form['account'] = array(
     '#type' => 'value',
     '#value' => $account,
@@ -57,6 +60,7 @@ function maplendar_add_event_form($form, &$form_state, $account) {
     '#type' => 'submit',
     '#value' => t("Add"),
   );
+  
   return $form;
 }
 
@@ -79,5 +83,5 @@ function maplendar_add_event_form_submit($form, &$form_state) {
   $record->end_time = strtotime("+1 hour", $timestamp);
   drupal_write_record('maplendar_events', $record);
   drupal_set_message(t('Successfully added new event'));
-  drupal_goto('maplendar/' . $account->uid . '/calendar');
+  drupal_goto('user/' . $account->uid . '/calendar');
 }

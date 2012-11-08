@@ -17,9 +17,13 @@
 	#AMPM{height: 30px; width: 35px; text-transform: uppercase;}
 </style>
 
+<<<<<<< HEAD
 <ul data-role="listview"></ul>
+=======
+<ul id="calendar_list" data-role="listview"></ul>
+>>>>>>> 9c2e9e14b3ae70d7dc4edeaa201e9595cdceee4c
 <br />
 <h3>Choose Date</h3>
 <input id="chosenDate" type="date" data-role="datebox" data-options='{"mode": "calbox", "useTodayButton": true "dateformat":"MM/DD/YYYY"}'>
 <button id="grabSchedule">Grab Schedule</button>
-<a href="/maplendar/<?php print $account->uid; ?>/calendar/add" data-role="button">Add Event</a>
+<a href="/user/<?php print $account->uid; ?>/calendar/add" data-role="button">Add Event</a>

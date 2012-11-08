@@ -165,6 +165,88 @@ function maplendar_schema() {
     ),
     'primary key' => array('id'),
   );
+  
+  $schema['maplendar_invites'] = array(
+    'description' => 'Stores the invites for users',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Unique ID',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'gid' => array(
+        'description' => 'The group id',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'The user who sent the invitation',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'email' => array(
+        'description' => 'The email address of the person',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'When the invitation was sent',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'accepted' => array(
+        'description' => 'When the invitation was accepted',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
 
   return $schema;
+}
+
+function maplendar_update_7103(&$sandbox) {
+  $schema['maplendar_invites'] = array(
+    'description' => 'Stores the invites for users',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Unique ID',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'gid' => array(
+        'description' => 'The group id',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'The user who sent the invitation',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'email' => array(
+        'description' => 'The email address of the person',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'When the invitation was sent',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'accepted' => array(
+        'description' => 'When the invitation was accepted',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+  
+  db_create_table('maplendar_invites', $schema['maplendar_invites']);
+  
+  return t('Added the invites table');
 }
