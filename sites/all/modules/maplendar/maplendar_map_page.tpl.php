@@ -1,16 +1,25 @@
+<? global $user;
+$account = user_load($user->uid);
+if (empty($account->maplendar_geolocation)) {
+  return;
+}
+ ?>
+
 <script type='text/javascript'>
-(function ($) {
+(function ($) {	
   $(document).ready(function () {
-      $('#geo_update').click(function () {
-          // Test for presence of geolocation
+      // Test for presence of geolocation
+  <? if($account->maplendar_geolocation->updated_time < strtotime("-5 minutes")){ ?>  
           if (navigator && navigator.geolocation) {
               // Attempt to get the geolocation data from HTML 5
               navigator.geolocation.getCurrentPosition(geo_success, geo_error);
           } else {
               alert('Geolocation is not supported.');
           }
-      });
+  <?
+  } ?>
   });
+  
    
   /**
    * Leighton Notes:
@@ -111,16 +120,10 @@
   }
 </style>
 
-<button id="geo_update">Update Location</button>
 <div id="map"></div>
 
 <?php
 
-global $user;
-$account = user_load($user->uid);
-if (empty($account->maplendar_geolocation)) {
-  return;
-}
 
 $map_latitude = $account->maplendar_geolocation->latitude;
 $map_longitude = $account->maplendar_geolocation->longitude;
@@ -133,7 +136,7 @@ $min_long = $max_long = $map_longitude;
 <script type="text/javascript">
 (function ($) {
   $(document).ready(function () {
-    $("#map").css('height', $(window).height() / 2);
+    $("#map").css('height', $(window).height() / 1.5);
   var map = L.map('map');
 
   L.tileLayer('http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/997/256/{z}/{x}/{y}.png', {
