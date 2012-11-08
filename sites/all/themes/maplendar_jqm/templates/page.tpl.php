@@ -94,13 +94,9 @@
         <div class="content-primary">
 
           <?php print render($page['header']); ?>
-          <?php if ($breadcrumb): ?>
-            <div id="breadcrumb"><?php print $breadcrumb; ?></div>
-          <?php endif; ?>
           <?php print $messages; ?>  
           <?php if ($page['highlighted']): ?><div class="highlighted"><?php print render($page['highlighted']); ?></div><?php endif; ?>
           <?php print render($title_prefix); ?>
-          <?php if ($title): ?><h2 class="title" class="page-title"><?php print $title; ?></h2><?php endif; ?>
           <?php print render($title_suffix); ?>
           <?php print render($page['help']); ?>
           <?php print render($page['content']); ?>

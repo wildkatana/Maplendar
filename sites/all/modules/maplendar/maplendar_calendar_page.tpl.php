@@ -10,17 +10,6 @@
 <script src="calendarXMLScript.js"></script>
 -->
 
-<script>
-(function($) {
-	$(document).ready(function()
-	{
-		$("#t").click(function() {
-			$("#t").dialog();
-		});
-	});
-})(jQuery);
-</script>
-
 <style>
 	#goBack{width:100%;}
 	#addHour{height: 30px; width:35px; text-align: right;}
@@ -28,7 +17,11 @@
 	#AMPM{height: 30px; width: 35px; text-transform: uppercase;}
 </style>
 
+<<<<<<< HEAD
+<ul data-role="listview"></ul>
+=======
 <ul id="calendar_list" data-role="listview"></ul>
+>>>>>>> 9c2e9e14b3ae70d7dc4edeaa201e9595cdceee4c
 <br />
 <h3>Choose Date</h3>
 <input id="chosenDate" type="date" data-role="datebox" data-options='{"mode": "calbox", "useTodayButton": true "dateformat":"MM/DD/YYYY"}'>
