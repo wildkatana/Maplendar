@@ -177,7 +177,7 @@
       //Display current hour
       getHourString(hour);
       $("#date_title").remove();
-      $('div[data-role=header]').append('<h1 id="date_title">' + dateString + '</h1>');
+      $('#dateHeader').html(dateString);
       //$('div[data-role=content]').prepend('<h2>' + timeString + '</h2>'); This is for the popup bubble time
     }
 

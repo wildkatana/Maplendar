@@ -16,14 +16,13 @@
 	#addMin{height: 30px; width:35px;}
 	#AMPM{height: 30px; width: 35px; text-transform: uppercase;}
 </style>
-
-<<<<<<< HEAD
-<ul data-role="listview"></ul>
-=======
-<ul id="calendar_list" data-role="listview"></ul>
->>>>>>> 9c2e9e14b3ae70d7dc4edeaa201e9595cdceee4c
+<h2><?php print $account->field_full_name[LANGUAGE_NONE][0]["value"]; ?>
 <br />
+<span id="dateHeader"></span></h2>
 <h3>Choose Date</h3>
 <input id="chosenDate" type="date" data-role="datebox" data-options='{"mode": "calbox", "useTodayButton": true "dateformat":"MM/DD/YYYY"}'>
 <button id="grabSchedule">Grab Schedule</button>
+<br />
+<ul id="calendar_list" data-role="listview"></ul>
+<br />
 <a href="/user/<?php print $account->uid; ?>/calendar/add" data-role="button">Add Event</a>

@@ -102,7 +102,13 @@
           <?php print render($page['content']); ?>
         </div> <!-- /.content-primary -->
         
-        <div class="content-secondary">
+        
+              
+    </div>
+
+    <div class="footer" <?php print drupal_attributes($page['attributes_array']['footer']); ?>>        
+      <?php print render($page['footer']); ?>
+      <div class="content-secondary">
         
         <?php if ($secondary_menu): ?>
           <div class="navigation">
@@ -122,11 +128,6 @@
           </div> <!-- /#sidebar-second -->
         <?php endif; ?>
         </div><!-- /.content-secondary -->
-              
-    </div>
-
-    <div class="footer" <?php print drupal_attributes($page['attributes_array']['footer']); ?>>        
-      <?php print render($page['footer']); ?>
     </div> <!-- /#footer -->
 
 </div> <!-- /#page -->
