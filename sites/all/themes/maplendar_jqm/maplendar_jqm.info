@@ -5,7 +5,7 @@ version = '7.x-1.0'
 base theme = 'mobile_jquery'
 
 scripts[] = 'scripts/maplendar_jqm.js'
-stylesheets[all][] = 'styles/maplendar_jqm.css'
+stylesheets[all][] = 'maplendar_jqm.css'
 
 regions[header] = 'Header'
 regions[highlighted] = 'Highlighted'

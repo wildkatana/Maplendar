@@ -104,10 +104,9 @@
         
         <div class="content-secondary">
         
-        <?php if ($main_menu || $secondary_menu): ?>
+        <?php if ($secondary_menu): ?>
           <div class="navigation">
-            <?php print theme('links__system_main_menu', array('links' => $main_menu, 'attributes' => array('id' => 'main-menu', 'class' => array('links', 'inline', 'clearfix')), 'heading' => t('Main Menu'))); ?>
-            <?php print theme('links__system_secondary_menu', array('links' => $secondary_menu, 'attributes' => array('id' => 'secondary-menu', 'class' => array('links', 'inline', 'clearfix')), 'heading' => t('Secondary Menu'))); ?>
+            <?php print theme('links__system_secondary_menu', array('links' => $secondary_menu, 'attributes' => array('id' => 'secondary-menu', 'class' => array('links', 'inline', 'clearfix')), 'heading' => t('User Menu'))); ?>
           </div> <!-- /#navigation -->
         <?php endif; ?>
         
