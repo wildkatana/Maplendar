@@ -770,3 +770,11 @@ function theme_maplendar_datetimefield($variables) {
 
   return $output;
 }
+
+/**
+ * Implementation of hook_form_alter();
+ */
+function maplendar_form_alter($form, $form_state, $form_id) {
+	
+}
+
