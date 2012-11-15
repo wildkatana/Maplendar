@@ -663,3 +663,8 @@ function maplendar_group_uri($entity) {
     'options' => array(),
   );
 }
+
+function maplendar_form_alter($form, $form_state, $form_id)
+{
+	
+}
