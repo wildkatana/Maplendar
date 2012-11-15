@@ -7,10 +7,23 @@
 	background: #eee;
 }
 
+.ui-body-error {
+  background: #c9de96; /* Old browsers */
+  background-image: -moz-linear-gradient(#c9de96, #398235); /* FF3.6+ */
+  background-image: -webkit-gradient(#c9de96, #398235); /* Chrome,Safari4+ */
+  background-image: -webkit-linear-gradient(#c9de96, #398235); /* Chrome10+,Safari5.1+ */
+  background-image: -o-linear-gradient(#c9de96, #398235); /* Opera 11.10+ */
+  background-image: -ms-linear-gradient(#c9de96, #398235); /* IE10+ */
+  background-image: linear-gradient(#c9de96, #398235); /* W3C */
+}
 .description{
 	font-size: 0.6em;
 	padding-bottom: 20px; 
 }
 div.password-confirm{
 	padding-bottom: 20px;
+}
+
+div.password-strength{
+	display: none;
 }
