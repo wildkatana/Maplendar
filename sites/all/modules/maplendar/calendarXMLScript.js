@@ -151,6 +151,11 @@
           timesEventArray.push('<li>' + time + ' - ' + evnt + '</li>');
         }
       }
+      
+      if(timesEventArray.length == 0)
+      {
+      	timesEventArray.push('<li><h1 style="color:blue;">No events were found.</h1></li>');
+      }
 
       //timesEventArray.sort();
       //labelArray.sort();
