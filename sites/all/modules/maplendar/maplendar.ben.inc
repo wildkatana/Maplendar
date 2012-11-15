@@ -40,9 +40,19 @@ function maplendar_add_event_form($form, &$form_state, $account) {
     '#value' => $account,
   );
   $form['date'] = array(
-    '#type' => 'date_popup', // This will add the date and time elements including the date popup calendar as provided by the Date drupal module
+    '#type' => 'maplendar_date',
     '#title' => t("Date"),
-    '#description' => t("Enter the date and time for this event."),
+    '#description' => t("Enter the date for this event."),
+    '#required' => TRUE,
+    '#attributes' => array(
+      'data-role' => 'datebox',
+      'data-options' => '{"mode": "date_popup", "useTodayButton": true "dateformat":"MM/DD/YYYY"}',
+    ),
+  );
+  $form['time'] = array(
+    '#type' => 'maplendar_timefield',
+    '#title' => t("Time"),
+    '#description' => t("Enter the time for this event."),
     '#required' => TRUE,
   );
   $form['title'] = array(
@@ -78,7 +88,7 @@ function maplendar_add_event_form_submit($form, &$form_state) {
   $record->uid = $account->uid;
   $record->title = $form_state['values']['title'];
   $record->place = $form_state['values']['place'];
-  $timestamp = strtotime($form_state['values']['date']);
+  $timestamp = strtotime($form_state['values']['date'] . ' ' . $form_state['values']['time']);
   $record->start_time = $timestamp;
   $record->end_time = strtotime("+1 hour", $timestamp);
   drupal_write_record('maplendar_events', $record);
