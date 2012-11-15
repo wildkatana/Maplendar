@@ -7,6 +7,9 @@
 	background: #eee;
 }
 
+.description{
+	font-size: 0.6em;
+}
 div.password-confirm{
 	padding-bottom: 20px;
 }
