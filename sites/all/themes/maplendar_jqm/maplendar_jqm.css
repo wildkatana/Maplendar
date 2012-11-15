@@ -14,3 +14,7 @@
 div.password-confirm{
 	padding-bottom: 20px;
 }
+
+div.password-strength{
+	display: none;
+}
