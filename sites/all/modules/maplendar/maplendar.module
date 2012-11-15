@@ -312,6 +312,18 @@ function maplendar_theme($existing, $type, $theme, $path) {
         'account' => NULL,
         ),
     ),
+    'maplendar_date' => array(
+      'arguments' => array('element' => NULL),
+      'render element' => 'element',
+    ),
+    'maplendar_timefield' => array(
+      'arguments' => array('element' => NULL),
+      'render element' => 'element',
+    ),
+    'maplendar_datetimefield' => array(
+      'arguments' => array('element' => NULL),
+      'render element' => 'element',
+    ),
   );
 }
 
@@ -662,4 +674,99 @@ function maplendar_group_uri($entity) {
     'path' => 'group/' . $entity->id,
     'options' => array(),
   );
+}
+
+/**
+ * Implements hook_element_info
+ */
+function maplendar_element_info() {
+  $types['maplendar_date'] = array(
+    '#input' => TRUE,
+    '#process' => array('ajax_process_form'),
+    '#autocomplete_path' => FALSE,
+    '#theme' => 'maplendar_date',
+    '#theme_wrappers' => array('form_element'),
+  );
+  $types['maplendar_timefield'] = array(
+    '#input' => TRUE,
+    '#process' => array('ajax_process_form'),
+    '#autocomplete_path' => FALSE,
+    '#theme' => 'maplendar_timefield',
+    '#theme_wrappers' => array('form_element'),
+  );
+  $types['maplendar_datetimefield'] = array(
+    '#input' => TRUE,
+    '#process' => array('ajax_process_form'),
+    '#autocomplete_path' => FALSE,
+    '#theme' => 'maplendar_datetimefield',
+    '#theme_wrappers' => array('form_element'),
+  );
+  
+  return $types;
+}
+
+/**
+ * Returns HTML for a datefield form element.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - element: An associative array containing the properties of the element.
+ *     Properties used: #title, #value, #description, #size, #maxlength,
+ *     #placeholder, #required, #attributes.
+ *
+ * @ingroup themeable
+ */
+function theme_maplendar_date($variables) {
+  $element = $variables['element'];
+  $element['#attributes']['type'] = 'date';
+  element_set_attributes($element, array('id', 'name', 'value', 'size', 'maxlength', 'placeholder'));
+  _form_set_class($element, array('form-text', 'form-date'));
+
+  $output = '<input' . drupal_attributes($element['#attributes']) . ' />';
+
+  return $output;
+}
+
+/**
+ * Returns HTML for a timefield form element.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - element: An associative array containing the properties of the element.
+ *     Properties used: #title, #value, #description, #size, #maxlength,
+ *     #placeholder, #required, #attributes.
+ *
+ * @ingroup themeable
+ */
+function theme_maplendar_timefield($variables) {
+  $element = $variables['element'];
+  $element['#attributes']['type'] = 'time';
+  element_set_attributes($element, array('id', 'name', 'value', 'size', 'maxlength', 'placeholder'));
+  _form_set_class($element, array('form-text', 'form-time'));
+
+  $output = '<input' . drupal_attributes($element['#attributes']) . ' />';
+
+  return $output;
+}
+
+/**
+ * Returns HTML for a datetimefield form element.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - element: An associative array containing the properties of the element.
+ *     Properties used: #title, #value, #description, #size, #maxlength,
+ *     #placeholder, #required, #attributes.
+ *
+ * @ingroup themeable
+ */
+function theme_maplendar_datetimefield($variables) {
+  $element = $variables['element'];
+  $element['#attributes']['type'] = 'datetime';
+  element_set_attributes($element, array('id', 'name', 'value', 'size', 'maxlength', 'placeholder'));
+  _form_set_class($element, array('form-text', 'form-datetime'));
+
+  $output = '<input' . drupal_attributes($element['#attributes']) . ' />';
+
+  return $output;
 }
