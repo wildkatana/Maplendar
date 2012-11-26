@@ -8,7 +8,7 @@ include 'maplendar.ben.inc';
 
 /**
  * Implements hook_menu
- * 
+ *
  * Leighton Notes:
  * This is a special Drupal hook that lets us register paths and callback functions.
  * Paths are like URLs on the site that we want to create, and the callback functions
@@ -26,6 +26,13 @@ function maplendar_menu() {
     'page arguments' => array(1),
     'access callback' => 'maplendar_map_access',
     'access arguments' => array(1),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['add_group'] = array(
+    'title' => 'Add Group',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('maplendar_add_group_form'),
+    'access arguments' => array('access content'),
     'type' => MENU_NORMAL_ITEM,
   );
   $items['group/%maplendar_group/map'] = array(
@@ -80,7 +87,7 @@ function maplendar_menu() {
 
 /**
  * Access callback for the accept invite page
- * 
+ *
  * Leighton Notes:
  * We want to make sure that only registered users can accept invites.
  */
@@ -96,20 +103,20 @@ function maplendar_accept_invite_access() {
 
 /**
  * Access callback for the calendar page
- * 
+ *
  * Leighton Notes:
  * This is a function that will be called when the user tries to access a calendar page.
  * We should check that the user has the proper access to see the page (ie they are
  * in the same group as the $account). For now we are just returning TRUE to always
  * grant access, but this will need to be changed before production.
  */
-function maplendar_calendar_access($account) {
+function maplendar_calendar_access($account = NULL) {
   return TRUE; // TODO - Check that the user is in the user's group or not
 }
 
 /**
  * Check if the attempt to log position for a user is valid
- * 
+ *
  * Leighton Notes:
  * This is the access callback to check if the log is a proper log from the system.
  * We determine this by checking the key, which is the md5 checksum of a user's
@@ -122,13 +129,13 @@ function maplendar_log_access($account, $key) {
   if (md5($account->created) == $key) {
     return TRUE;
   }
-  
+
   return FALSE;
 }
 
 /**
  * Check if the user has access to view the map for this group
- * 
+ *
  * Leighton Notes:
  * This is the access callback to make sure that the user has access to view the
  * group's map page (ie they should be a member of the group). This is to prevent
@@ -141,7 +148,7 @@ function maplendar_map_access($group) {
 
 /**
  * Checks if a user is in a group
- * 
+ *
  * Leighton Notes:
  * We just load the group members for a group and make sure that the user id passed
  * is in that group. If it is, we return TRUE, if not, we return FALSE.
@@ -152,11 +159,11 @@ function maplendar_group_access_check($gid, $uid) {
     ->condition('gm.uid', $uid, '=')
     ->condition('gm.gid', $gid, '=')
     ->execute();
-  
+
   foreach ($result as $record) {
     return TRUE;
   }
-  
+
   return FALSE;
 }
 
@@ -167,12 +174,12 @@ function maplendar_group_access_check($gid, $uid) {
 
 /**
  * Implements hook_user_load()
- * 
+ *
  * Leighton Notes:
  * Drupal calls this function when it loads a user from the database (which happens a lot)
  * What we do here is add the events for the user, both from our database table and from
  * Google Calendar if they have it set, to the $user object
- * 
+ *
  * We also add the saved geolocation data to the user object here too
  */
 function maplendar_user_load($users) {
@@ -181,10 +188,10 @@ function maplendar_user_load($users) {
   foreach ($result as $record) {
     // Add the geolocation data to the user object from our database table
     $users[$record->uid]->maplendar_geolocation = $record;
-    
+
     // Get the events for the user from our database table
     $events = maplendar_get_user_events($record->uid);
-    
+
     // See if this member has a google calendar, and if so, get those events
     if (!empty($users[$record->uid]->field_google_calendar_private_xm['und'][0]['value'])) {
       $google_events = maplendar_get_google_calendar($users[$record->uid]->field_google_calendar_private_xm['und'][0]['value']);
@@ -199,7 +206,7 @@ function maplendar_user_load($users) {
 
 /**
  * Implements hook_user_insert
- * 
+ *
  * Leighton Notes:
  * Drupal calls this function whenever a new user is saved
  */
@@ -209,7 +216,7 @@ function maplendar_user_insert(&$edit, $account, $category) {
 
 /**
  * Gets an array of events from the database
- * 
+ *
  * Leighton Notes:
  * This does an SQL select statement to get the events for the user id that is passed
  * in from our database table 'maplendar_events' and returns them in an array keyed
@@ -220,9 +227,9 @@ function maplendar_get_user_events($uid) {
     ->fields('e')
     ->condition('uid', $uid)
     ->execute();
-  
+
   $events = array();
-  
+
   foreach ($result as $row) {
     $events[$row->start_time] = array(
       'title' => $row->title,
@@ -233,7 +240,7 @@ function maplendar_get_user_events($uid) {
       'end' => $row->end_time,
     );
   }
-  
+
   return $events;
 }
 
@@ -245,17 +252,17 @@ function maplendar_invitation_load($id) {
     ->fields('i')
     ->condition('id', $id)
     ->execute();
-  
+
   foreach ($result as $invitation) {
     return $invitation;
   }
-  
+
   return FALSE;
 }
 
 /**
  * Loads a group given an id
- * 
+ *
  * Leighton Notes:
  * This loads a group from the database table 'maplendar_groups' by it's group id,
  * then fills it's members property with an array of members belonging to the group,
@@ -266,35 +273,36 @@ function maplendar_group_load($gid) {
     ->condition('id', $gid)
     ->fields('g')
     ->execute();
-  
+
   foreach ($result as $group) {
     // Load the members for this group
     $group->members = array();
-    
+
     $result2 = db_select('maplendar_group_members', 'gm')
+      ->condition('gid', $group->id)
       ->fields('gm')
       ->execute();
-    
+
     foreach ($result2 as $row) {
       if ($member = user_load($row->uid)) {
         $group->members[$row->uid] = $member;
       }
     }
-    
+
     return $group;
   }
-  
+
   return FALSE;
 }
 
 /**
  * Implements hook_theme()
- * 
+ *
  * Leighton Notes:
  * This function tells drupal which custom 'theme' functions we have, and where the
  * template files (.tpl.php) are that should be called to build the output for each
  * theme call, as well as any variables that will be passed in to those theme files
- * 
+ *
  * Note that these two theme functions we are registering relate to the two .tpl.php files
  * we use for the map and calendar pages
  */
@@ -329,13 +337,13 @@ function maplendar_theme($existing, $type, $theme, $path) {
 
 /**
  * Implements hook_mail().
- * 
+ *
  * Handle Mail functions
  */
 function maplendar_mail($key, &$message, $vars) {
   // Load the vars
   extract($vars);
-  
+
   switch ($key) {
     case 'invitation':
       $message['subject'] = variable_get('maplendar_invitation_mail_subject', t("You've been invited!"));
@@ -347,7 +355,7 @@ To accept this invitation, click this link: !link
 Sincerely,
 Maplendar Team
       ", array(
-        '@user_name' => $account->field_full_name[LANGUAGE_NONE][0]['value'], 
+        '@user_name' => $account->field_full_name[LANGUAGE_NONE][0]['value'],
         '@group_name' => $group->name,
         '!link' => url('invitation/accept/' . md5($invitation->created) . '/' . $invitation->id, array('absolute' => TRUE)))));
     break;
@@ -360,7 +368,7 @@ Maplendar Team
 
 /**
  * AJAX callback that records the position of a user from the $_REQUEST array
- * 
+ *
  * Leighton Notes:
  * This is called by the jQuery code on the map page (in the maplendar_map_page.tpl.php file)
  * when the 'Update Location' button is clicked. It reads in the properties that were passed
@@ -378,16 +386,16 @@ function maplendar_log_position($account) {
     'speed' => !empty($_REQUEST['speed']) ? floatval($_REQUEST['speed']) : 0,
     'updated_time' => time(),
   );
-  
+
   $success = db_merge('maplendar_info')
     ->key(array('uid' => $account->uid))
     ->fields($position_data)
     ->execute();
-  
+
   $result = array(
     'success' => FALSE,
   );
-  
+
   if ($success) {
     $result = array(
       'success' => TRUE,
@@ -399,13 +407,13 @@ function maplendar_log_position($account) {
       'message' => t("Error writing the record to the database.")
     );
   }
-  
+
   return drupal_json_output($result);
 }
 
 /**
  * Callback for the map page
- * 
+ *
  * Leighton Notes:
  * This is the callback function for the map page path we defined in maplendar_menu() above.
  * We just call the theme function we registered and pass the group as the variable to the
@@ -427,23 +435,23 @@ function maplendar_invite_form($form, $form_state, $group) {
   );
   $form['email'] = array(
     '#title' => t("Invite via Email"),
-    '#description' => t("Enter the email of the person you would like to invite 
+    '#description' => t("Enter the email of the person you would like to invite
       to join your group. They will be sent an email with an invitation link."),
     '#type' => 'textfield',
     '#required' => TRUE,
   );
-  
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t("Invite"),
   );
-  
+
   return $form;
 }
 
 /**
  * Validation callback for the invite friend form
- * 
+ *
  * Leighton Notes:
  * Here we check that the user isn't already a member of the group, as well as if the
  * email address is properly formatted
@@ -460,7 +468,7 @@ function maplendar_invite_form_validate($form, $form_state) {
 
 /**
  * Submit handler for the invite friend form
- * 
+ *
  * Leighton Notes:
  * Here we will get the email address entered and send that email an invite from
  * the currently logged in user, with a link where they can accept the invitation
@@ -473,13 +481,13 @@ function maplendar_invite_form_submit($form, $form_state) {
   $group = $form_state['values']['group'];
   $email = $form_state['values']['email'];
   $account = user_load($user->uid);
-  
+
   // Erase an existing record if needed
   $result = db_delete('maplendar_invites')
     ->condition('gid', $group->id)
     ->condition('email', $email)
     ->execute();
-  
+
   // Save the invitation to the database
   $record = new stdClass();
   $record->gid = $group->id;
@@ -488,10 +496,10 @@ function maplendar_invite_form_submit($form, $form_state) {
   $record->created = time();
   $record->accepted = 0;
   drupal_write_record('maplendar_invites', $record);
-  
+
   // Send the email
   drupal_mail('maplendar', 'invitation', $email, user_preferred_language($account), array('account' => $account, 'group' => $group, 'invitation' => $record));
-  
+
   drupal_set_message(t("Sent an invitation email to @email", array('@email' => $email)));
 }
 
@@ -502,32 +510,32 @@ function maplendar_accept_invite_form($form, $form_state, $md5, $invitation) {
   // Load the group
   $group = maplendar_group_load($invitation->gid);
   $account = user_load($invitation->uid);
-  
+
   $form = array();
   $form['invitation'] = array(
     '#type' => 'value',
     '#value' => $invitation,
   );
-  
+
   drupal_set_title(t("Accept Invitation"));
-  
+
   $form['help'] = array(
     '#type' => 'item',
-    '#markup' => t("Click below to accept the invitation from @user_name to join @group group.", 
+    '#markup' => t("Click below to accept the invitation from @user_name to join @group group.",
       array('@group' => $group->name, '@user_name' => $account->field_full_name[LANGUAGE_NONE][0]['value']))
   );
-  
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t("Accept Invite"),
   );
-  
+
   return $form;
 }
 
 /**
  * Submit handler for the invite friend form
- * 
+ *
  * Leighton Notes:
  * When the user accepts the invite, we simply create a new group member record
  * for them
@@ -535,25 +543,25 @@ function maplendar_accept_invite_form($form, $form_state, $md5, $invitation) {
 function maplendar_accept_invite_form_submit($form, $form_state) {
   global $user;
   $invitation = $form_state['values']['invitation'];
-  
+
   // Erase an existing record if needed
   $result = db_delete('maplendar_invites')
     ->condition('id', $invitation->id)
     ->execute();
-  
+
   // Save the record to the database
   $record = new stdClass();
   $record->gid = $invitation->gid;
   $record->uid = $user->uid;
   drupal_write_record('maplendar_group_members', $record);
-  
+
   drupal_set_message(t("You have joined the group."));
   drupal_goto('group/' . $invitation->gid);
 }
 
 /**
  * Fetches and parses the google calendar xml
- * 
+ *
  * Leighton Notes:
  * Here we fetch the xml file from the $url that was passed in and parse the xml
  * to extract the events, and return those events in an array keyed by the start
@@ -574,27 +582,27 @@ function maplendar_get_google_calendar($url) {
     "start-min=" . $start_min . "&" .
     "start-max=" . $start_max;
   //drupal_set_message('<pre>' . print_r($feed, TRUE) . '</pre>');
-  $doc = new DOMDocument(); 
+  $doc = new DOMDocument();
   $doc->load( $feed );
 
-  $entries = $doc->getElementsByTagName( "entry" ); 
+  $entries = $doc->getElementsByTagName( "entry" );
 
   foreach ( $entries as $entry ) {
-    $status = $entry->getElementsByTagName( "eventStatus" ); 
+    $status = $entry->getElementsByTagName( "eventStatus" );
     $eventStatus = $status->item(0)->getAttributeNode("value")->value;
     if ($eventStatus == $confirmed) {
-      $titles = $entry->getElementsByTagName( "title" ); 
+      $titles = $entry->getElementsByTagName( "title" );
       $title = $titles->item(0)->nodeValue;
       $title = ereg_replace(" & ", " &amp; ", $title);
       if ($original = $entry->getElementsByTagName( "originalEvent" ) AND $original_item = $original->item(0)) {
         $entry->removeChild($original_item);
       }
-      $times = $entry->getElementsByTagName( "when" ); 
+      $times = $entry->getElementsByTagName( "when" );
       $startTime = strtotime($times->item(0)->getAttributeNode("startTime")->value);
       $endTime = strtotime($times->item(0)->getAttributeNode("endTime")->value);
-      $places = $entry->getElementsByTagName( "where" ); 
+      $places = $entry->getElementsByTagName( "where" );
       $where = $places->item(0)->getAttributeNode("valueString")->value;
-      
+
       $events[$startTime] = array(
         'title' => $title,
         'date_string' => date('M d, Y', $startTime),
@@ -604,8 +612,8 @@ function maplendar_get_google_calendar($url) {
         'where' => $where
       );
     }
-  } 
-  
+  }
+
   return $events;
 }
 
@@ -701,7 +709,7 @@ function maplendar_element_info() {
     '#theme' => 'maplendar_datetimefield',
     '#theme_wrappers' => array('form_element'),
   );
-  
+
   return $types;
 }
 
@@ -775,6 +783,46 @@ function theme_maplendar_datetimefield($variables) {
  * Implementation of hook_form_alter();
  */
 function maplendar_form_alter($form, $form_state, $form_id) {
-	
+
 }
 
+/**
+ * Builds the add group form
+ */
+function maplendar_add_group_form($form, $form_state) {
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#title' => t("Group name"),
+    '#description' => t("Enter the name of the group."),
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t("Add"),
+  );
+
+  return $form;
+}
+
+/**
+ * The submit handler for the add group form.
+ */
+function maplendar_add_group_form_submit($form, $form_state) {
+  // Create a new group
+  global $user;
+  $group = new stdClass();
+  $group->uid = $user->uid;
+  $group->name = $form_state['values']['name'];
+  $group->created = REQUEST_TIME;
+  drupal_write_record('maplendar_groups', $group);
+
+  // Add the user to the group
+  $group_member = new stdClass();
+  $group_member->uid = $user->uid;
+  $group_member->gid = $group->id;
+  drupal_write_record('maplendar_group_members', $group_member);
+
+  // Redirect to the home page
+  drupal_goto('');
+}
