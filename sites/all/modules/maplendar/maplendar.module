@@ -671,7 +671,7 @@ function maplendar_entity_property_info_alter(&$info) {
  * Creates the label for a group
  */
 function maplendar_group_label($entity, $entity_type) {
-  return t('Group: @name', array('@name' => $entity->name));
+  return $entity->name;
 }
 
 /**
