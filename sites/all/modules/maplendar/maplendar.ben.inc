@@ -2,7 +2,7 @@
 
 /**
  * Page handler for the calendar url
- * 
+ *
  * Leighton Notes:
  * This is the calendar page callback we defined in maplendar_menu() function.
  */
@@ -10,6 +10,9 @@ function maplendar_calendar_page($account) {
   drupal_set_title(t("Calendar for @user", array('@user' => $account->field_full_name[LANGUAGE_NONE][0]['value'])));
   // Add the dialog jquery UI library (instead of the whole jquery UI libraries for performance)
   drupal_add_library('system', 'ui.dialog');
+  if (empty($account->events)) {
+    $account->events = array();
+  }
   // Add a javascript setting that will be in the Drupal.settings.maplendar.events variable
   // This will be an array of all of the events for the user that we are viewing the calendar for
   // The events property was populated in the maplendar_user_load() function
@@ -25,7 +28,7 @@ function maplendar_calendar_page($account) {
 
 /**
  * Build a form to let users add new events
- * 
+ *
  * Leighton Notes:
  * This is the callback function for the add event page defined in maplendar_menu().
  * This function builds a $form array of the form elements that we want to show to
@@ -34,7 +37,7 @@ function maplendar_calendar_page($account) {
  */
 function maplendar_add_event_form($form, &$form_state, $account) {
   $form = array();
-  
+
   $form['account'] = array(
     '#type' => 'value',
     '#value' => $account,
@@ -70,13 +73,13 @@ function maplendar_add_event_form($form, &$form_state, $account) {
     '#type' => 'submit',
     '#value' => t("Add"),
   );
-  
+
   return $form;
 }
 
 /**
  * Submit handler for the add event form
- * 
+ *
  * Leighton Notes:
  * This function is called when the form above is submitted, and it is passed the
  * values of the form in the $form_state['values'] array. We create a new record

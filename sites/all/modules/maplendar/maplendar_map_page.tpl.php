@@ -1,15 +1,12 @@
 <? global $user;
 $account = user_load($user->uid);
-if (empty($account->maplendar_geolocation)) {
-  return;
-}
  ?>
 
 <script type='text/javascript'>
-(function ($) {	
+(function ($) {
   $(document).ready(function () {
       // Test for presence of geolocation
-  <? if($account->maplendar_geolocation->updated_time < strtotime("-5 minutes")){ ?>  
+  <? if (empty($account->maplendar_geolocation->updated_time) OR $account->maplendar_geolocation->updated_time < strtotime("-5 minutes")){ ?>
           if (navigator && navigator.geolocation) {
               // Attempt to get the geolocation data from HTML 5
               navigator.geolocation.getCurrentPosition(geo_success, geo_error);
@@ -19,13 +16,13 @@ if (empty($account->maplendar_geolocation)) {
   <?
   } ?>
   });
-  
+
    
   /**
    * Leighton Notes:
    * If we succesffully got the geolocation data from HTML 5, we put that data into
    * an object and send that object to our log location callback maplendar_log_position()
-   * via AJAX, which will save the location data in the database. 
+   * via AJAX, which will save the location data in the database.
    */
   function geo_success(position) {
     // Store the current position data for the user
@@ -42,7 +39,7 @@ if (empty($account->maplendar_geolocation)) {
       window.location.href = "/group/<?php print $group->id; ?>";
     });
   }
-  
+
   function geo_error(err) {
       if (err.code == 1) {
           alert('The user denied the request for location information.')
@@ -75,14 +72,14 @@ if (empty($account->maplendar_geolocation)) {
     height: 50px;
     width: 50px;
   }
-  
+
   .maplendar_image {
     margin: 0;
     padding: 0;
     height: 50px;
     width: 50px;
   }
-  
+
   .maplendar_marker_div .maplendar_image img {
     width: 50px;
     height: 50px;
@@ -124,6 +121,9 @@ if (empty($account->maplendar_geolocation)) {
 
 <?php
 
+if (empty($account->maplendar_geolocation)) {
+  return;
+}
 
 $map_latitude = $account->maplendar_geolocation->latitude;
 $map_longitude = $account->maplendar_geolocation->longitude;
@@ -143,7 +143,7 @@ $min_long = $max_long = $map_longitude;
     maxZoom: 18,
     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>'
   }).addTo(map);
-  
+
   <?php
   // Load the group and members of the group
   foreach ($group->members as $member) {
@@ -154,7 +154,7 @@ $min_long = $max_long = $map_longitude;
     }
     $current_event = FALSE;
     $next_event = FALSE;
-    
+
     // Get current and next events
     foreach ($member->events as $event) {
       if ($event['start'] < REQUEST_TIME AND $event['end'] > REQUEST_TIME) {
@@ -168,33 +168,33 @@ $min_long = $max_long = $map_longitude;
         break;
       }
     }
-    
+
     $wrapper = file_stream_wrapper_get_instance_by_uri($member->picture->uri);
     $picture_url = $wrapper->getDirectoryPath() . "/" . file_uri_target($member->picture->uri);
-  
+
     $member_html = "<div class='maplendar_image'><img src='/" . $picture_url . "' /></div><div class='maplendar_name'>" . $member->field_full_name['und'][0]['value'] . "</div>";
-    
+
     $popup_html = "<a href='" . "/user/" . $member->uid . "/calendar" . "'>" . t('View Calendar') . "</a>";
-    
+
     if ($current_event) {
       $popup_html .= "<h4 class='maplendar_bubble_heading'>Now: " . $current_event['title'] . "</h4>";
-      $popup_html .= "<p>Where: " . ($current_event['where'] ? $current_event['where'] : 'N/A') . "</p>" 
+      $popup_html .= "<p>Where: " . ($current_event['where'] ? $current_event['where'] : 'N/A') . "</p>"
         ."<p>Ends: " . date('m/d/y - g:i a', $current_event['end']) . "</p>";
     }
-    
+
     if ($next_event) {
       $popup_html .= "<h4 class='maplendar_bubble_heading'>Next: " . $next_event['title'] . "</h4>";
       $popup_html .= "<p>Where: " . ($next_event['where'] ? $next_event['where'] : 'N/A') . "</p>"
         ."<p>Starts: " . date('m/d/y - g:i a', $next_event['start']) . "</p>"
         ."<p>Ends: " . date('m/d/y - g:i a', $next_event['end']) . "</p>";
     }
-    
+
     $popup_html .= "<p class='meta'>Last updated: " . date('M j, Y g:i a', $member->maplendar_geolocation->updated_time) . "</p>";
     $popup_html .= "<p class='meta'>Accuracy: " . round($member->maplendar_geolocation->accuracy) . " meters</p>";
-    
+
     $mem_lat = $member->maplendar_geolocation->latitude;
     $mem_long = $member->maplendar_geolocation->longitude;
-    
+
     if ($mem_lat < $min_lat) {
       $min_lat = $mem_lat;
     }
@@ -211,16 +211,16 @@ $min_long = $max_long = $map_longitude;
     var myIcon = L.divIcon({
       iconSize: [50, 70],
       iconAnchor: [50, 0],
-      className: 'maplendar_marker_div', 
+      className: 'maplendar_marker_div',
       html: "<?php print $member_html; ?>"
     });
-    
+
     L.marker([<?php print $mem_lat; ?>, <?php print $mem_long; ?>], {icon: myIcon}).addTo(map).bindPopup("<?php print $popup_html; ?>");
   <?php
   }
   ?>
   map.setView([<?php print $map_latitude; ?>, <?php print $map_longitude; ?>], 13);
-  
+
   map.fitBounds([
     [<?php print $min_lat; ?>, <?php print $min_long; ?>],
     [<?php print $max_lat; ?>, <?php print $max_long; ?>]
