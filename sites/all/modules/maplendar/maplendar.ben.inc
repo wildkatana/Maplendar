@@ -36,8 +36,6 @@ function maplendar_calendar_page($account) {
  * the specifications in this array.
  */
 function maplendar_add_event_form($form, &$form_state, $account) {
-  $form = array();
-
   $form['account'] = array(
     '#type' => 'value',
     '#value' => $account,

@@ -77,6 +77,14 @@ function maplendar_menu() {
     'access arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
   );
+  $items['user/%user/calendar/%maplendar_event'] = array(
+    'title' => 'Event',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('maplendar_event_edit_form', 1, 3),
+    'access callback' => 'maplendar_calendar_access',
+    'access arguments' => array(1),
+    'type' => MENU_CALLBACK,
+  );
   $items['user/%user/calendar/add'] = array(
     'page callback' => 'drupal_get_form',
     'page arguments' => array('maplendar_add_event_form', 1),
@@ -252,6 +260,7 @@ function maplendar_get_user_events($uid) {
   foreach ($result as $row) {
     $events[$row->start_time] = array(
       'title' => $row->title,
+      'link' => url('user/' . $row->uid . '/calendar/' . $row->id, array('absolute' => TRUE)),
       'date_string' => date('M d, Y', $row->start_time),
       'time_string' => date('g:i A', $row->start_time),
       'start' => $row->start_time,
@@ -870,4 +879,104 @@ function maplendar_delete_group_confirm_form_submit($form, $form_state) {
 
   drupal_set_message(t('Group @group has been deleted.', array('@group' => $group->name)));
   drupal_goto('');
+}
+
+/**
+ * Loads an event from the database
+ */
+function maplendar_event_load($id) {
+  $result = db_select('maplendar_events', 'e')
+    ->fields('e')
+    ->condition('id', $id)
+    ->execute();
+
+  foreach ($result as $event) {
+    return $event;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Form constructor for the edit event form.
+ */
+function maplendar_event_edit_form($form, $form_state, $account, $event) {
+  $form['account'] = array(
+    '#type' => 'value',
+    '#value' => $account,
+  );
+  $form['event'] = array(
+    '#type' => 'value',
+    '#value' => $event,
+  );
+  $form['date'] = array(
+    '#type' => 'maplendar_date',
+    '#title' => t("Date"),
+    '#description' => t("Enter the date for this event."),
+    '#default_value' => date('Y-m-d', $event->start_time),
+    '#required' => TRUE,
+    '#attributes' => array(
+      'data-role' => 'datebox',
+      'data-options' => '{"mode": "date_popup", "useTodayButton": true "dateformat":"MM/DD/YYYY"}',
+    ),
+  );
+  $form['time'] = array(
+    '#type' => 'maplendar_timefield',
+    '#title' => t("Time"),
+    '#description' => t("Enter the time for this event."),
+    '#default_value' => date('G:i:s', $event->start_time),
+    '#required' => TRUE,
+  );
+  $form['title'] = array(
+    '#title' => t("Event Description"),
+    '#description' => t("Describe your event"),
+    '#type' => 'textfield',
+    '#default_value' => $event->title,
+    '#required' => TRUE,
+  );
+  $form['place'] = array(
+    '#title' => t("Place"),
+    '#description' => t("Where the event takes place"),
+    '#default_value' => $event->place,
+    '#type' => 'textfield',
+  );
+  $form['submit_save'] = array(
+    '#type' => 'submit',
+    '#value' => t("Save"),
+  );
+  $form['submit_delete'] = array(
+    '#type' => 'submit',
+    '#value' => t("Delete"),
+  );
+
+  return $form;
+}
+
+/**
+ * Form submission handler for maplendar_event_edit_form().
+ */
+function maplendar_event_edit_form_submit($form, $form_state) {
+  $event = $form_state['values']['event'];
+  $account = $form_state['values']['account'];
+
+  switch ($form_state['input']['op']) {
+    case 'Save':
+      drupal_set_message(t('Event updated.'));
+      $event->title = $form_state['values']['title'];
+      $event->place = $form_state['values']['place'];
+      $timestamp = strtotime($form_state['values']['date'] . ' ' . $form_state['values']['time']);
+      $event->start_time = $timestamp;
+      $event->end_time = strtotime("+1 hour", $timestamp);
+      drupal_write_record('maplendar_events', $event, 'id');
+      break;
+
+    case 'Delete':
+      db_delete('maplendar_events')
+        ->condition('id', $event->id)
+        ->execute();
+      drupal_set_message(t('Event deleted.'));
+      break;
+  }
+
+  drupal_goto('user/' . $account->uid . '/calendar');
 }

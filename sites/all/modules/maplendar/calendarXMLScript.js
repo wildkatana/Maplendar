@@ -122,7 +122,7 @@
       //$('div[data-role="header"]').empty();
       //$('ul[data-role="listview"]').empty();
       //$('h2').replaceWith('');
-      
+
       $('ul#calendar_list').empty();
 
       $('body').append('<div>');
@@ -148,10 +148,15 @@
 
           getHourString(hour);
           labelArray.push('<li data-role="list-divider"><h2>' + timeString + '</h2></li>')
-          timesEventArray.push('<li>' + time + ' - ' + evnt + '</li>');
+          if (user_events[j].link) {
+            timesEventArray.push('<li><a href="' + user_events[j].link + '">' + time + ' - ' + evnt + '</a></li>');
+          }
+          else {
+            timesEventArray.push('<li>' + time + ' - ' + evnt + '</li>');
+          }
         }
       }
-      
+
       if(timesEventArray.length == 0)
       {
       	timesEventArray.push('<li><h1 style="color:blue;">No events were found.</h1></li>');
@@ -252,4 +257,4 @@
     });
 
   });
-})(jQuery); 
+})(jQuery);
