@@ -20,7 +20,7 @@ $account = user_load($user->uid);
    
   /**
    * Leighton Notes:
-   * If we succesffully got the geolocation data from HTML 5, we put that data into
+   * If we succesfully got the geolocation data from HTML 5, we put that data into
    * an object and send that object to our log location callback maplendar_log_position()
    * via AJAX, which will save the location data in the database.
    */
@@ -116,6 +116,8 @@ $account = user_load($user->uid);
     text-shadow: none;
   }
 </style>
+
+<h3><?php print $group->name; ?></h3>
 
 <div id="map"></div>
 

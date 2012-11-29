@@ -53,6 +53,15 @@ function maplendar_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 2,
   );
+  $items['group/%maplendar_group/delete'] = array(
+    'title' => 'Delete Group',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('maplendar_delete_group_confirm_form', 1),
+    'access callback' => 'maplendar_owner_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 11,
+  );
   $items['maplendar/%user/log/%'] = array(
     'page callback' => 'maplendar_log_position',
     'page arguments' => array(1),
@@ -83,6 +92,16 @@ function maplendar_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   return $items;
+}
+
+/**
+ * Access callback for the delete group page. Only group creators can delete
+ * them.
+ */
+function maplendar_owner_access($group) {
+  global $user;
+
+  return $group->uid == $user->uid;
 }
 
 /**
@@ -824,5 +843,31 @@ function maplendar_add_group_form_submit($form, $form_state) {
   drupal_write_record('maplendar_group_members', $group_member);
 
   // Redirect to the home page
+  drupal_goto('');
+}
+
+/**
+ * Form constructor for the delete group form.
+ */
+function maplendar_delete_group_confirm_form($form, $form_state, $group) {
+  $form['#group'] = $group;
+  return confirm_form($form, '', '<front>', t('Are you sure you want to delete this group? This action cannot be undone.'), t('Confirm'));
+}
+
+/**
+ * Form submission handler for the delete group form.
+ */
+function maplendar_delete_group_confirm_form_submit($form, $form_state) {
+  $group = $form['#group'];
+  // First, delete the group member records.
+  db_delete('maplendar_group_members')
+    ->condition('gid', $group->id)
+    ->execute();
+  // Then, delete the group.
+  db_delete('maplendar_groups')
+    ->condition('id', $group->id)
+    ->execute();
+
+  drupal_set_message(t('Group @group has been deleted.', array('@group' => $group->name)));
   drupal_goto('');
 }
